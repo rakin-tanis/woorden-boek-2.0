@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Example } from '@/types';
 
 interface EditExampleProps {
@@ -16,17 +16,28 @@ const EditExample: React.FC<EditExampleProps> = ({
   onSave,
   onCancel
 }) => {
-  if (!showEditModal) return
-
-  const [dutch, setDutch] = useState<string | undefined>(example?.dutch);
-  const [turkish, setTurkish] = useState<string | undefined>(example?.turkish);
-  const [words, setWords] = useState<string | undefined>(example?.words?.join(","));
-  const [source, setSource] = useState<string | undefined>(example?.source);
-  const [level, setLevel] = useState<string | undefined>(example?.level);
-  const [theme, setTheme] = useState<string | undefined>(example?.theme);
-  const [status, setStatus] = useState<string | undefined>(example?.status);
+  const [dutch, setDutch] = useState<string>("");
+  const [turkish, setTurkish] = useState<string>("");
+  const [words, setWords] = useState<string>("");
+  const [source, setSource] = useState<string>("");
+  const [level, setLevel] = useState<string>("");
+  const [theme, setTheme] = useState<string>("");
+  const [status, setStatus] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  useEffect(() => {
+    if (showEditModal) {
+      setDutch(example?.dutch || "");
+      setTurkish(example?.turkish || "");
+      setWords(example?.words?.join(",") || "");
+      setSource(example?.source || "");
+      setLevel(example?.level || "");
+      setTheme(example?.theme || "");
+      setStatus(example?.status || "");
+      setErrors({});
+    }
+  }, [showEditModal, example]);
 
   // Validate form before submission
   const validateForm = (): boolean => {
@@ -99,19 +110,19 @@ const EditExample: React.FC<EditExampleProps> = ({
   };
 
   const closeModal = () => {
-    setDutch(undefined)
-    setTurkish(undefined)
-    setWords(undefined)
-    setSource(undefined)
-    setLevel(undefined)
-    setTheme(undefined)
-    setStatus(undefined)
+    setDutch("")
+    setTurkish("")
+    setWords("")
+    setSource("")
+    setLevel("")
+    setTheme("")
+    setStatus("")
     setErrors({})
     onCancel()
   }
 
   return (
-    <div className="fixed inset-0 z-10 bg-gray-100 dark:bg-gray-800 m-auto max-w-4xl h-fit p-10 rounded-lg border-2 shadow-lg drop-shadow-lg border-gray-300">
+    <div className={`fixed inset-0 z-10 bg-gray-100 dark:bg-gray-800 m-auto max-w-4xl h-fit p-10 rounded-lg border-2 shadow-lg drop-shadow-lg border-gray-300 ${showEditModal ? '' : 'hidden'}`}>
       <form onSubmit={handleSubmit} className="edit-example-form">
         <div className="flex flex-col gap-4">
 
@@ -177,7 +188,7 @@ const EditExample: React.FC<EditExampleProps> = ({
               className={`dark:text-black w-full p-2 border border-gray-300 ${errors.source ? 'border-red-500' : 'border-gray-300'}`}
               disabled={isSubmitting}
             >
-              <option value="undefined">Select Source</option>
+              <option value="">Select Source</option>
               <option value="blue">Blue</option>
               <option value="orange">Orange</option>
               <option value="green">Green</option>
@@ -198,7 +209,7 @@ const EditExample: React.FC<EditExampleProps> = ({
               className={`dark:text-black w-full p-2 border border-gray-300 ${errors.level ? 'border-red-500' : 'border-gray-300'}`}
               disabled={isSubmitting}
             >
-              <option value="undefined">Select level</option>
+              <option value="">Select level</option>
               <option value="A1">A1</option>
               <option value="A2">A2</option>
               <option value="B1">B1</option>
@@ -239,7 +250,7 @@ const EditExample: React.FC<EditExampleProps> = ({
               className={`dark:text-black w-full p-2 border border-gray-300 ${errors.status ? 'border-red-500' : 'border-gray-300'}`}
               disabled={isSubmitting}
             >
-              <option value="undefined">Select Status</option>
+              <option value="">Select Status</option>
               <option value="published">Published</option>
               <option value="draft">Draft</option>
             </select>

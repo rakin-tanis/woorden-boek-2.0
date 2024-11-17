@@ -1,12 +1,8 @@
-// Validation function
-export const validateExample = (example: any) => {
-  const { status, turkish, dutch, words, ...otherFields } = example;
+import { Example } from "@/types";
 
-  for (const field in otherFields) {
-    if (!otherFields[field]) {
-      return { valid: false, error: `${field} is required` };
-    }
-  }
+// Validation function
+export const validateExample = (example: Example) => {
+  const { status, turkish, dutch, words, source, level, theme } = example;
 
   if (status === "published") {
     // All fields must be filled
@@ -41,6 +37,27 @@ export const validateExample = (example: any) => {
           "At least one of Turkish or Dutch must be filled when status is draft",
       };
     }
+  }
+
+  if (!source) {
+    return {
+      valid: false,
+      error: "Source is required",
+    };
+  }
+
+  if (!level) {
+    return {
+      valid: false,
+      error: "Level is required",
+    };
+  }
+
+  if (!theme) {
+    return {
+      valid: false,
+      error: "Theme is required",
+    };
   }
 
   return { valid: true };

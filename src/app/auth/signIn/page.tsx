@@ -1,10 +1,18 @@
 'use client';
 
 import { signIn } from 'next-auth/react';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function SignIn() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignInContent></SignInContent>
+    </Suspense>
+  );
+}
+
+const SignInContent = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const router = useRouter();
@@ -13,7 +21,7 @@ export default function SignIn() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const result = await signIn('credentials', {
       email,
       password,
@@ -30,7 +38,7 @@ export default function SignIn() {
   };
 
   const handleGoogleSignIn = () => {
-    signIn('google', { 
+    signIn('google', {
       callbackUrl: callbackUrl,
       redirect: true
     });
@@ -82,5 +90,5 @@ export default function SignIn() {
         </div>
       </div>
     </div>
-  );
+  )
 }

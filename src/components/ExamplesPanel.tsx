@@ -15,6 +15,13 @@ interface FilterState {
   status: string[];
 }
 
+interface AvailableFilters {
+  sources: string[];
+  levels: string[];
+  themes: string[];
+  statuses: string[];
+}
+
 interface ExamplesResponse {
   data: Example[];
   total: number;
@@ -37,7 +44,7 @@ const ExamplesPanel: React.FC = () => {
     theme: [],
     status: []
   });
-  const [availableFilters, setAvailableFilters] = useState({
+  const [availableFilters, setAvailableFilters] = useState<AvailableFilters>({
     sources: [],
     levels: [],
     themes: [],

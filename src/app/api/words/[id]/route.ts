@@ -1,12 +1,11 @@
 // pages/api/words/[id].ts
-import { NextApiRequest } from "next";
 import clientPromise from "@/lib/mongodb"; // Adjust the import based on your DB connection logic
 import { ObjectId } from "mongodb"; // Import ObjectId if using MongoDB
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { validateExample } from "@/lib/validation";
 
 export async function PUT(
-  req: NextApiRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const exampleId = (await params).id; // Extract the example ID from the parameters

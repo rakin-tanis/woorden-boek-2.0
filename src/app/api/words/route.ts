@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     const collection = db.collection("examples");
 
     // Build query
-    const query: any = {};
+    const query: Record<string, unknown> = {};
 
     if (search) {
       query.$or = [

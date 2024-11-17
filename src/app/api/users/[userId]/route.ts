@@ -1,13 +1,8 @@
-import { NextApiRequest, NextApiResponse } from "next";
 import { ObjectId } from "mongodb";
 import clientPromise from "@/lib/mongodb";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(
-  req: NextApiRequest,
-  { params }: { params: Promise<{ userId: string }> },
-  res: NextApiResponse
-) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ userId: string }> }) {
   const userId = (await params).userId;
 
   if (!userId) {
@@ -38,13 +33,13 @@ export async function GET(
 }
 
 export async function PUT(
-  req: NextApiRequest,
-  { params }: { params: Promise<{ userId: string }> },
+  req: NextRequest,
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   const userId = (await params).userId;
   const body = await req.json();
 
-  console.log(body)
+  console.log(body);
 
   if (!userId) {
     return NextResponse.json(
