@@ -4,6 +4,7 @@ import GoogleProvider from "next-auth/providers/google";
 import { MongoDBAdapter } from "@next-auth/mongodb-adapter";
 import clientPromise from "@/lib/mongodb";
 import bcrypt from "bcryptjs";
+import { ObjectId } from "mongodb";
 
 export const authOptions: NextAuthOptions = {
   adapter: MongoDBAdapter(clientPromise, { databaseName: "woorden-boek" }),
@@ -19,14 +20,22 @@ export const authOptions: NextAuthOptions = {
           name: profile.name,
           role: "user", // Default role for Google sign-ins
           status: "ACTIVE",
-          isEmailVerified: false,
+          isEmailVerified: true,
+          createdAt: new Date(),
+          lastLoginAt: new Date(),
+          provider: "google",
         };
+      },
+      authorization: {
+        params: {
+          scope: "openid profile email",
+        },
       },
     }),
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "email" },
+        email: { label: "Email", type: "email", placeholder: "e-mail" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
@@ -58,6 +67,12 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Account is not active");
         }
 
+        const lastLoginAt = new Date();
+        await usersCollection.updateOne(
+          { _id: new ObjectId(user._id) },
+          { $set: { lastLoginAt } }
+        );
+
         return {
           id: user._id.toString(),
           image: user.image,
@@ -65,7 +80,10 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           role: user.role,
           status: user.status,
-          isEmailVerified: user.isEmailVerified,
+          isEmailVerified: user.emailVerified,
+          createdAt: user.createdAt,
+          lastLoginAt: lastLoginAt,
+          provider: "google",
         };
       },
     }),
@@ -84,16 +102,6 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!existingUser) {
-          await usersCollection.insertOne({
-            email: user.email,
-            role: "user",
-            provider: "google",
-            createdAt: new Date(),
-            name: user.name,
-            image: user.image,
-            status: "ACTIVE",
-            isEmailVerified: true,
-          });
           user.role = "user";
           user.status = "ACTIVE";
           user.isEmailVerified = true;
@@ -128,7 +136,8 @@ export const authOptions: NextAuthOptions = {
       if (url.startsWith("/")) {
         // For relative URLs, prefix with base URL
         return `${baseUrl}${url}`;
-      } else if (new URL(url).origin === baseUrl) {
+      }
+      if (new URL(url).origin === baseUrl) {
         // Allow redirects to same origin
         return url;
       }
@@ -136,8 +145,34 @@ export const authOptions: NextAuthOptions = {
       return baseUrl;
     },
   },
+  events: {
+    async signIn(message) {
+      console.log("Sign in successful", message);
+    },
+    async signOut(message) {
+      console.log("Sign out successful", message);
+    },
+    async createUser(message) {
+      console.log("User created", message);
+    },
+  },
   pages: {
     signIn: "/auth/signIn",
-    // signUp: '/auth/signup',
+    signOut: "/auth/signOut",
+    error: "/auth/error",
+    verifyRequest: "/auth/verifyRequest",
+    newUser: "/auth/newUser",
+  },
+  debug: process.env.NODE_ENV === "development", // Enable debug logs
+  logger: {
+    error(code, metadata) {
+      console.error("NextAuth Error:", code, metadata);
+    },
+    warn(code) {
+      console.warn("NextAuth Warning:", code);
+    },
+    debug(code, metadata) {
+      console.log("NextAuth Debug:", code, metadata);
+    },
   },
 };

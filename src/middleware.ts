@@ -7,6 +7,12 @@ export function middleware(request: NextRequest) {
   // Add pathname to headers for server components
   response.headers.set("x-url", request.nextUrl.pathname);
 
+  /* console.log("Middleware Request:", {
+    url: request.url,
+    method: request.method,
+    headers: Object.fromEntries(request.headers),
+  });
+ */
   return response;
 }
 

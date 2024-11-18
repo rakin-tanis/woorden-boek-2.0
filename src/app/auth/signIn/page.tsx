@@ -25,7 +25,7 @@ const SignInContent = () => {
     const result = await signIn('credentials', {
       email,
       password,
-      redirect: false,
+      redirect: true,
       callbackUrl,
     });
 
@@ -55,7 +55,7 @@ const SignInContent = () => {
             <input
               type="email"
               required
-              className="appearance-none rounded-md relative block w-full px-3 py-2 border"
+              className="appearance-none rounded-md relative block w-full px-3 py-2 border dark:text-black"
               placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -65,7 +65,7 @@ const SignInContent = () => {
             <input
               type="password"
               required
-              className="appearance-none rounded-md relative block w-full px-3 py-2 border"
+              className="appearance-none rounded-md relative block w-full px-3 py-2 border dark:text-black"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -80,6 +80,17 @@ const SignInContent = () => {
             </button>
           </div>
         </form>
+        <div className="text-center text-sm">
+          <p>
+            Don't have an account?{' '}
+            <a
+            href="/auth/signUp"
+            className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-200 dark:hover:text-indigo-100"
+            >
+              Sign up
+            </a>
+          </p>
+        </div>
         <div className="mt-4">
           <button
             onClick={handleGoogleSignIn}

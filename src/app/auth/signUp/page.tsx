@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function SignUp() {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const router = useRouter();
@@ -11,19 +12,20 @@ export default function SignUp() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const response = await fetch('/api/auth/signup', {
+    const response = await fetch('/api/auth/signUp', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        name,
         email,
         password,
       }),
     });
 
     if (response.ok) {
-      router.push('/auth/signin');
+      router.push('/auth/signIn');
     } else {
       // Handle error
       const data = await response.json();
@@ -40,9 +42,19 @@ export default function SignUp() {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div>
             <input
+              type="name"
+              required
+              className="appearance-none rounded-md relative block w-full px-3 py-2 border dark:text-black"
+              placeholder="Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+          <div>
+            <input
               type="email"
               required
-              className="appearance-none rounded-md relative block w-full px-3 py-2 border"
+              className="appearance-none rounded-md relative block w-full px-3 py-2 border dark:text-black"
               placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -52,7 +64,7 @@ export default function SignUp() {
             <input
               type="password"
               required
-              className="appearance-none rounded-md relative block w-full px-3 py-2 border"
+              className="appearance-none rounded-md relative block w-full px-3 py-2 border dark:text-black"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

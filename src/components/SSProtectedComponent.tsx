@@ -11,7 +11,7 @@ interface ServerAuthProps {
 export default async function SSProtectedComponent({
   children,
   allowedRoles,
-  redirectToLogin = true
+  redirectToLogin = false
 }: ServerAuthProps) {
   const session = await getServerSession();
   const headerList = await headers();

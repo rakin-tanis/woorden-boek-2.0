@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/Input';
 import {
   Table,
@@ -12,62 +12,37 @@ import {
   TableRow
 } from '@/components/ui/Table';
 import Pagination from "@/components/ui/Pagination";
-import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import ConfirmModal from './ui/ConfirmModal';
 import { toast } from 'sonner';
+import { User } from '@/types';
+import { Modal } from './ui/Modal';
+import EditUser from './EditUser';
 
-interface User {
-  _id: string;
-  name: string;
-  email: string;
-  createdAt: string;
-  provider: string;
-  role: string;
-  image: string;
-  status: string;
-}
+
 
 export default function UserPanel() {
-  const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
   const { data: session } = useSession();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUpdateLoading, setIsUpdateLoading] = useState(false);
 
   const [users, setUsers] = useState<User[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+  const [userToEdit, setUserToEdit] = useState<User | undefined>()
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToDeleteId, setUserToDeleteId] = useState('');
   const itemsPerPage = 10;
 
-  // Create query string from params
-  const createQueryString = (params: Record<string, string | number>) => {
-    const current = new URLSearchParams(Array.from(searchParams.entries()));
-
-    for (const [key, value] of Object.entries(params)) {
-      if (value === '') {
-        current.delete(key);
-      } else {
-        current.set(key, value.toString());
-      }
-    }
-
-    return current.toString();
-  };
-
   // Fetch users
   const fetchUsers = useCallback(async () => {
     try {
-      setLoading(true);
-      const queryString = createQueryString({
-        page: page.toString(),
-        limit: itemsPerPage.toString(),
-        search: searchTerm
-      });
-      const response = await fetch(`/api/users?${queryString}`);
+      setIsLoading(true);
+      const response = await fetch(`/api/users?page=${page}&limit=${itemsPerPage}&search=${encodeURIComponent(searchTerm)}`);
       const data = await response.json();
 
       if (!response.ok) throw new Error(data.error);
@@ -81,7 +56,7 @@ export default function UserPanel() {
         duration: 5000,
       })
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   }, [page, searchTerm]);
 
@@ -92,17 +67,11 @@ export default function UserPanel() {
   // Handle search
   const handleSearch = (value: string) => {
     setSearchTerm(value);
-    router.push(
-      `${pathname}?${createQueryString({
-        search: value,
-        page: 1
-      })}`
-    );
   };
 
   useEffect(() => {
     fetchUsers();
-  }, [fetchUsers]);
+  }, []);
 
   const handleDeleteConfirm = async () => {
     try {
@@ -131,6 +100,59 @@ export default function UserPanel() {
     setShowDeleteModal(true);
   };
 
+  const editUser = (user: User) => {
+    if (user._id === session!.user.id) return
+    setUserToEdit(user)
+    setIsModalOpen(true);
+  }
+
+  const handleUpdate = async (user: User) => {
+    setIsUpdateLoading(true);
+    try {
+      const userId = user._id
+      const response = await fetch(`/api/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          role: user.role,
+          status: user.status
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error);
+      }
+      setUserToEdit(user)
+      setUsers(prev => {
+        return prev.map(u => {
+          if (u._id == user._id) {
+            u.role = user.role;
+            u.status = user.status
+          }
+          return u;
+        })
+      })
+      // fetchUsers()
+      const data = await response.json()
+      toast.success("Success", {
+        description: data.message,
+        duration: 5000,
+      })
+    } catch (error) {
+      console.error('Error updating user: ', error);
+      toast.error("Error", {
+        description: 'Failed to update user. ' + JSON.stringify(error),
+        duration: 5000,
+      })
+    }
+    finally {
+      setIsUpdateLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-4 p-4">
       <div className="flex justify-between items-center">
@@ -144,7 +166,7 @@ export default function UserPanel() {
         />
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <div className="text-center py-4">Loading...</div>
       ) : (
         <>
@@ -157,7 +179,9 @@ export default function UserPanel() {
                   <TableHead>Role</TableHead>
                   <TableHead>Provider</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Is Email Verified</TableHead>
                   <TableHead>Created At</TableHead>
+                  <TableHead>Last Login At</TableHead>
                   <TableHead></TableHead>
                   <TableHead></TableHead>
                 </TableRow>
@@ -170,27 +194,31 @@ export default function UserPanel() {
                   </TableCell> */}
                     <TableCell>{user.name}</TableCell>
                     <TableCell>{user.email}</TableCell>
-                    <TableCell>{user.role}</TableCell>
-                    <TableCell>{user.provider}</TableCell>
-                    <TableCell>{user.status}</TableCell>
+                    <TableCell>{user.role?.toUpperCase()}</TableCell>
+                    <TableCell>{user.provider?.toUpperCase()}</TableCell>
+                    <TableCell>{user.status?.toUpperCase()}</TableCell>
+                    <TableCell>{user.isEmailVerified ? "YES" : "NO"}</TableCell>
                     <TableCell>
                       {new Date(user.createdAt).toLocaleString()}
                     </TableCell>
                     <TableCell>
-                      <Link
+                      {new Date(user.lastLoginAt).toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      <a
                         className={`hover:border-b-2 hover:border-b-blue-400 text-blue-900 dark:text-blue-400 ${user._id === session?.user.id ? 'opacity-50 cursor-not-allowed' : 'opacity-100 cursor-pointer'}`}
-                        href={user._id === session!.user.id ? '#' : `/admin/user?userId=${user._id}`}
+                        onClick={() => editUser(user)}
                         aria-disabled={user._id === session!.user.id}
                       >
-                        {"Edit"}
-                      </Link>
+                        Edit
+                      </a>
                     </TableCell>
                     <TableCell>
                       <a
                         className={`hover:border-b-2 hover:border-b-blue-400 text-blue-900 dark:text-blue-400 ${user._id === session?.user.id ? 'opacity-50 cursor-not-allowed' : 'opacity-100 cursor-pointer'}`}
                         onClick={() => deleteUser(user._id)}
                       >
-                        {"Delete"}
+                        Delete
                       </a>
                     </TableCell>
                   </TableRow>
@@ -213,6 +241,19 @@ export default function UserPanel() {
               itemsPerPage={itemsPerPage}
               onPageChange={handlePageChange} />
           </div>
+
+          {/* Edit Modal */}
+          <Modal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+          >
+            <EditUser
+              user={userToEdit}
+              isLoading={isUpdateLoading}
+              updateUser={handleUpdate}
+              cancel={() => setIsModalOpen(false)} />
+          </Modal>
+
           {/* Delete Modal */}
           <ConfirmModal
             showConfirmModal={showDeleteModal}

@@ -2,6 +2,19 @@ export interface MongoDBId {
   $oid: string;
 }
 
+export interface User {
+  _id: string;
+  name: string;
+  email: string;
+  createdAt: string;
+  lastLoginAt: string;
+  provider: string;
+  role: string;
+  image: string;
+  status: string;
+  isEmailVerified: boolean;
+}
+
 export interface Example {
   _id?: string;
   dutch: string;

@@ -9,7 +9,7 @@ const page = async () => {
     <SSProtectedComponent allowedRoles={['editor', 'admin']} redirectToLogin={true}>
       <div className='flex flex-col gap-20 justify-center h-full'>
         <ExamplesPanel></ExamplesPanel>
-        <SSProtectedComponent allowedRoles={['admin']} >
+        <SSProtectedComponent allowedRoles={['admin']}>
           <UserPanel></UserPanel>
         </SSProtectedComponent>
       </div>

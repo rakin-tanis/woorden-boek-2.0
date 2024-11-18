@@ -4,7 +4,7 @@ import clientPromise from "@/lib/mongodb";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password } = await req.json();
+    const { name, email, password } = await req.json();
 
     const client = await clientPromise;
     const usersCollection = client.db("woorden-boek").collection("users");
@@ -23,12 +23,13 @@ export async function POST(req: NextRequest) {
 
     // Create new user
     await usersCollection.insertOne({
+      name,
       email,
       password: hashedPassword,
       role: "user",
       createdAt: new Date(),
       status: "ACTIVE",
-      isEmailVerified: false,
+      emailVerified: false,
       provider: "credentials",
     });
 
