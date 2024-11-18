@@ -54,11 +54,13 @@ const ExamplesPanel: React.FC = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [exampleToDeleteId, setExampleToDeleteId] = useState('');
   const [editExampleItem, setEditExampleItem] = useState<Example | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const debouncedSearch = useDebounce(searchTerm, 300);
   const itemsPerPage = 30;
 
   const fetchData = useCallback(async () => {
+    setIsLoading(true)
     try {
       const queryParams = new URLSearchParams({
         page: page.toString(),
@@ -84,6 +86,8 @@ const ExamplesPanel: React.FC = () => {
         description: 'Failed to fetch examples: ' + JSON.stringify(error),
         duration: 5000,
       })
+    } finally {
+      setIsLoading(false)
     }
   }, [page, debouncedSearch, filters]);
 
@@ -235,6 +239,7 @@ const ExamplesPanel: React.FC = () => {
         editExample={editExample}
         deleteExample={deleteExample}
         addNewExample={() => setShowEditModal(true)}
+        isLoading={isLoading}
       />
       <EditExample
         showEditModal={showEditModal}

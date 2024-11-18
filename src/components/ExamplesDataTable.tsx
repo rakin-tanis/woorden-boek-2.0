@@ -40,6 +40,7 @@ interface ExamplesTableProps {
   editExample: (example: Example) => void;
   deleteExample: (exampleId?: string) => void;
   addNewExample: () => void
+  isLoading: boolean
 }
 
 const ExamplesDataTable: React.FC<ExamplesTableProps> = ({
@@ -54,7 +55,8 @@ const ExamplesDataTable: React.FC<ExamplesTableProps> = ({
   currentFilters,
   editExample,
   deleteExample,
-  addNewExample
+  addNewExample,
+  isLoading,
 }) => {
   const [searchText, setSearchText] = useState('')
 
@@ -186,65 +188,69 @@ const ExamplesDataTable: React.FC<ExamplesTableProps> = ({
       </div>
 
       {/* Table */}
-      <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Dutch</TableHead>
-              <TableHead>Turkish</TableHead>
-              <TableHead>Words</TableHead>
-              <TableHead>Source</TableHead>
-              <TableHead>Level</TableHead>
-              <TableHead>Theme</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead></TableHead>
-              <TableHead></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.map((item, index) => (
-              <TableRow key={item._id} className={`${index % 2 === 0 ? "dark:bg-gray-800 bg-gray-200" : "dark:bg-gray-950 bg-white"}`}>
-                <TableCell>
-                  <HighlightText targetText={item.dutch} searchText={searchText} />
-                </TableCell>
-                <TableCell>
-                  <HighlightText targetText={item.turkish} searchText={searchText} />
-                </TableCell>
-                <TableCell>
-                  <HighlightText targetText={item.words.join(', ')} searchText={searchText} />
-                </TableCell>
-                <TableCell>{item.source}</TableCell>
-                <TableCell>{item.level}</TableCell>
-                <TableCell>{item.theme}</TableCell>
-                <TableCell>
-                  <span className={`px-2 py-1 text-sm 
-                  ${item.status === 'published'
-                      ? 'bg-green-600 text-white'
-                      : 'bg-yellow-100 text-gray-800'}`}>
-                    {item.status}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <a
-                    className={`cursor-pointer hover:border-b-2 hover:shadow-sm text-blue-900 dark:text-blue-400`}
-                    onClick={() => editExample(item)}
-                  >
-                    {"Edit"}
-                  </a>
-                </TableCell>
-                <TableCell>
-                  <a
-                    className={`cursor-pointer hover:border-b-2 hover:shadow-sm text-blue-900 dark:text-blue-400`}
-                    onClick={() => deleteExample(item._id)}
-                  >
-                    {"Delete"}
-                  </a>
-                </TableCell>
+      {isLoading ? (
+        <div className="text-center py-4">Loading...</div>
+      ) : (
+        <div className="border rounded-lg">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Dutch</TableHead>
+                <TableHead>Turkish</TableHead>
+                <TableHead>Words</TableHead>
+                <TableHead>Source</TableHead>
+                <TableHead>Level</TableHead>
+                <TableHead>Theme</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead></TableHead>
+                <TableHead></TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {data.map((item, index) => (
+                <TableRow key={item._id} className={`${index % 2 === 0 ? "dark:bg-gray-800 bg-gray-200" : "dark:bg-gray-950 bg-white"}`}>
+                  <TableCell>
+                    <HighlightText targetText={item.dutch} searchText={searchText} />
+                  </TableCell>
+                  <TableCell>
+                    <HighlightText targetText={item.turkish} searchText={searchText} />
+                  </TableCell>
+                  <TableCell>
+                    <HighlightText targetText={item.words.join(', ')} searchText={searchText} />
+                  </TableCell>
+                  <TableCell>{item.source}</TableCell>
+                  <TableCell>{item.level}</TableCell>
+                  <TableCell>{item.theme}</TableCell>
+                  <TableCell>
+                    <span className={`px-2 py-1 text-sm 
+                  ${item.status === 'published'
+                        ? 'bg-green-600 text-white'
+                        : 'bg-yellow-100 text-gray-800'}`}>
+                      {item.status}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <a
+                      className={`cursor-pointer hover:border-b-2 hover:shadow-sm text-blue-900 dark:text-blue-400`}
+                      onClick={() => editExample(item)}
+                    >
+                      {"Edit"}
+                    </a>
+                  </TableCell>
+                  <TableCell>
+                    <a
+                      className={`cursor-pointer hover:border-b-2 hover:shadow-sm text-blue-900 dark:text-blue-400`}
+                      onClick={() => deleteExample(item._id)}
+                    >
+                      {"Delete"}
+                    </a>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
 
       {/* Pagination */}
       <Pagination
