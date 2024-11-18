@@ -110,7 +110,7 @@ export default function EditUser({ user, isLoading, updateUser, cancel }: EditUs
             id="role"
             value={role}
             onChange={handleRoleChange}
-            className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            className="dark:text-black mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
           >
             <option value="user">User</option>
             <option value="editor">Editor</option>
@@ -125,7 +125,7 @@ export default function EditUser({ user, isLoading, updateUser, cancel }: EditUs
             id="status"
             value={status}
             onChange={handleStatusChange}
-            className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            className="dark:text-black mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
           >
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>

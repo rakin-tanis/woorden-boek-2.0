@@ -22,7 +22,7 @@ export const Modal: React.FC<ModalProps> = ({
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm ${bgBlur ? "" : "h-fit w-fit m-auto"}`}
+      className={`fixed inset-0 z-10 flex items-center justify-center bg-black/50 backdrop-blur-sm ${bgBlur ? "" : "h-fit w-fit m-auto"}`}
       onClick={onClose}
     >
       <div
