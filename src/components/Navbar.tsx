@@ -25,8 +25,8 @@ const Navbar = () => {
   ].filter(item => item.show); // Filter out items that should not be shown
 
   return (
-    <nav aria-label="Main Navigation" className="z-30 px-3 pt-1 sm:px-0 sm:pt-0 fixed top-0 w-full bg-white dark:bg-black shadow-md">
-      <div className="flex flex-col justify-between items-center md:flex-row md:items-center ">
+    <nav aria-label="Main Navigation" className="z-30 p-4 fixed top-0 w-full bg-white dark:bg-black shadow-md dark:shadow-gray-700">
+      <div className="flex flex-col justify-between items-center md:flex-row md:items-center mb-2">
         <div>
           <Link href="/" className="flex gap-1 items-center" aria-label="Homepage">
             <span className="text-3xl font-medium dark:text-white pt-1.5">

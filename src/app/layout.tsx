@@ -33,7 +33,7 @@ export default function RootLayout({
       >
         <Providers>
           <Navbar></Navbar>
-          <div className="my-24">
+          <div>
             {children}
           </div>
           <Toaster />
