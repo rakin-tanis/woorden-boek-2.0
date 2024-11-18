@@ -2,17 +2,18 @@
 
 import React, { useEffect, useState } from 'react';
 import { Example } from '@/types';
+import { Button } from './ui/Button';
 
 interface EditExampleProps {
-  showEditModal: boolean;
-  example: Example | null | undefined;
+  example?: Example;
+  isLoading: boolean
   onSave: (updatedExample: Example) => Promise<void>;
   onCancel: () => void;
 }
 
 const EditExample: React.FC<EditExampleProps> = ({
-  showEditModal,
   example,
+  isLoading,
   onSave,
   onCancel
 }) => {
@@ -27,17 +28,15 @@ const EditExample: React.FC<EditExampleProps> = ({
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
-    if (showEditModal) {
-      setDutch(example?.dutch || "");
-      setTurkish(example?.turkish || "");
-      setWords(example?.words?.join(",") || "");
-      setSource(example?.source || "");
-      setLevel(example?.level || "");
-      setTheme(example?.theme || "");
-      setStatus(example?.status || "");
-      setErrors({});
-    }
-  }, [showEditModal, example]);
+    setDutch(example?.dutch || "");
+    setTurkish(example?.turkish || "");
+    setWords(example?.words?.join(",") || "");
+    setSource(example?.source || "");
+    setLevel(example?.level || "");
+    setTheme(example?.theme || "");
+    setStatus(example?.status || "");
+    setErrors({});
+  }, [example]);
 
   // Validate form before submission
   const validateForm = (): boolean => {
@@ -122,7 +121,7 @@ const EditExample: React.FC<EditExampleProps> = ({
   }
 
   return (
-    <div className={`fixed inset-0 z-10 bg-gray-100 dark:bg-gray-800 m-auto max-w-4xl h-fit p-10 rounded-lg border-2 shadow-lg drop-shadow-lg border-gray-300 ${showEditModal ? '' : 'hidden'}`}>
+    <div className={`space-y-4 p-4 min-w-96`}>
       <form onSubmit={handleSubmit} className="edit-example-form">
         <div className="flex flex-col gap-4">
 
@@ -261,22 +260,22 @@ const EditExample: React.FC<EditExampleProps> = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-end space-x-4 mt-4">
-          <button
+        <div className="flex justify-end space-x-3 mt-6 border-t pt-4 dark:border-gray-700">
+          <Button
             type="button"
+            variant="outline"
             onClick={closeModal}
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
-            disabled={isSubmitting}
+            disabled={isLoading}
           >
             Cancel
-          </button>
-          <button
-            type="submit"
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            disabled={isSubmitting}
+          </Button>
+          <Button
+            type='submit'
+            disabled={isLoading}
+            isLoading={isLoading}
           >
-            {isSubmitting ? 'Saving...' : example?._id ? 'Save Changes' : 'Add Example'}
-          </button>
+            Update
+          </Button>
         </div>
       </form>
     </div>

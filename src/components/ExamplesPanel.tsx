@@ -7,6 +7,7 @@ import { Example } from '@/types';
 import ConfirmModal from './ui/ConfirmModal';
 import EditExample from './EditExample';
 import { toast } from 'sonner';
+import { Modal } from './ui/Modal';
 
 interface FilterState {
   source: string[];
@@ -50,11 +51,12 @@ const ExamplesPanel: React.FC = () => {
     themes: [],
     statuses: []
   });
-  const [showEditModal, setShowEditModal] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [exampleToDeleteId, setExampleToDeleteId] = useState('');
-  const [editExampleItem, setEditExampleItem] = useState<Example | null>(null);
+  const [exampleToEdit, setExampleToEdit] = useState<Example | undefined>();
   const [isLoading, setIsLoading] = useState(true);
+  const [isUpdateLoading, setIsUpdateLoading] = useState(false);
 
   const debouncedSearch = useDebounce(searchTerm, 300);
   const itemsPerPage = 30;
@@ -113,8 +115,8 @@ const ExamplesPanel: React.FC = () => {
   };
 
   const editExample = (example: Example) => {
-    setEditExampleItem(example)
-    setShowEditModal(true)
+    setExampleToEdit(example)
+    setIsModalOpen(true);
   }
 
   const handleDeleteConfirm = async () => {
@@ -153,6 +155,7 @@ const ExamplesPanel: React.FC = () => {
   };
 
   const updateExample = async (updatedExample: Example) => {
+    setIsUpdateLoading(true);
     try {
       const { _id, ...body } = updatedExample;
       // API call to update the example
@@ -170,8 +173,8 @@ const ExamplesPanel: React.FC = () => {
 
       fetchData();
       // Close the edit mode
-      setEditExampleItem(null);
-      setShowEditModal(false);
+      setExampleToEdit(undefined);
+      setIsModalOpen(false)
       const data = await response.json()
       toast.success("Success", {
         description: data.message,
@@ -183,10 +186,13 @@ const ExamplesPanel: React.FC = () => {
         description: 'Error updating example: ' + JSON.stringify(error),
         duration: 5000,
       })
+    } finally {
+      setIsUpdateLoading(false);
     }
   }
 
   const createExample = async (newExample: Example) => {
+    setIsUpdateLoading(true);
     try {
       // API call to add the example
       const response = await fetch(`/api/words/`, {
@@ -203,8 +209,8 @@ const ExamplesPanel: React.FC = () => {
 
       fetchData();
       // Close the edit mode
-      setEditExampleItem(null);
-      setShowEditModal(false);
+      setExampleToEdit(undefined);
+      setIsModalOpen(false)
       const data = await response.json()
       toast.success("Success", {
         description: data.message,
@@ -216,13 +222,20 @@ const ExamplesPanel: React.FC = () => {
         description: 'Error adding example: ' + JSON.stringify(error),
         duration: 5000,
       })
+    } finally {
+      setIsUpdateLoading(false);
     }
   }
 
   const handleCancelEdit = () => {
-    setEditExampleItem(null);
-    setShowEditModal(false);
+    setExampleToEdit(undefined);
+    setIsModalOpen(false)
   };
+
+  const addNewExample = () => {
+    setExampleToEdit(undefined)
+    setIsModalOpen(true)
+  }
 
   return (
     <div className='p-4'>
@@ -238,14 +251,21 @@ const ExamplesPanel: React.FC = () => {
         currentFilters={filters}
         editExample={editExample}
         deleteExample={deleteExample}
-        addNewExample={() => setShowEditModal(true)}
+        addNewExample={addNewExample}
         isLoading={isLoading}
       />
-      <EditExample
-        showEditModal={showEditModal}
-        example={editExampleItem}
-        onSave={handleSaveExample}
-        onCancel={handleCancelEdit} />
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        bgBlur={false}
+      >
+        <EditExample
+          example={exampleToEdit}
+          isLoading={isUpdateLoading}
+          onSave={handleSaveExample}
+          onCancel={handleCancelEdit} />
+      </Modal>
+
       {/* Delete Modal */}
       <ConfirmModal
         showConfirmModal={showDeleteModal}
