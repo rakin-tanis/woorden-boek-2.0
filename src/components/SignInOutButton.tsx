@@ -23,14 +23,12 @@ import { Button } from "@/components/ui/Button";
 import { useTheme } from "next-themes";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import Spinner from "./ui/Spinner";
 
 const SignInOutButton = () => {
   const { data: session } = useSession();
   const { theme, setTheme } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
 
   const handleSignOut = async () => {
     setIsLoading(true);
@@ -43,6 +41,7 @@ const SignInOutButton = () => {
         description: "You have been successfully signed out.",
       });
     } catch (error) {
+      console.log("Sign Out Failed", error)
       toast.error("Sign Out Failed", {
         description: "Unable to sign out. Please try again.",
       });

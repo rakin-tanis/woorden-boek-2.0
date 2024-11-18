@@ -82,10 +82,10 @@ const SignInContent = () => {
         </form>
         <div className="text-center text-sm">
           <p>
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <a
-            href="/auth/signUp"
-            className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-200 dark:hover:text-indigo-100"
+              href="/auth/signUp"
+              className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-200 dark:hover:text-indigo-100"
             >
               Sign up
             </a>
