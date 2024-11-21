@@ -14,25 +14,46 @@ import { useSession } from 'next-auth/react';
 type GameStatus = 'loading' | 'playing' | 'finished';
 type QuestionStatus = 'playing' | 'success' | 'failed'
 
-const LanguageGame: React.FC = () => {
-  const { data: session } = useSession();
-  const [examples, setExamples] = useState<Example[]>([]);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
-  const [currentQuestion, setCurrentQuestion] = useState<Example | null>(null);
-  const [report, setReport] = useState<Record<string, { level: string, result: string }>>({})
-  const [userAnswer, setUserAnswer] = useState<string>('');
+interface GameState {
+  examples: Example[],
+  userAnswer: string;
+  currentQuestionIndex: number;
+  currentQuestion: Example | null;
+  score: number;
+  streak: number;
+  timeRemaining: number;
+  gameStatus: 'loading' | 'playing' | 'finished';
+  level: string;
+  report: Record<string, { level: string, result: string }>;
+  feedback: string[];
+  progress: number;
+  isAnswerSubmitted: boolean;
+  questionStatus: 'playing' | 'success' | 'failed'
+  isTimerRunning: boolean;
+  isShaking: boolean;
+}
 
-  const [level, setLevel] = useState<string>('');
-  const [score, setScore] = useState<number>(0);
-  const [streak, setStreak] = useState<number>(0);
-  const [timeRemaining, setTimeRemaining] = useState<number>(60);
-  const [gameStatus, setGameStatus] = useState<GameStatus>('playing');
-  const [feedback, setFeedback] = useState<string[]>([]);
-  const [progress, setProgress] = useState<number>(0);
-  const [isAnswerSubmitted, setIsAnswerSubmitted] = useState<boolean>(false);
-  const [questionStatus, setQuestionStatus] = useState<QuestionStatus>('playing');
-  const [isTimerRunning, setIsTimerRunning] = useState<boolean>(true);
-  const [isShaking, setIsShaking] = useState(false);
+const LanguageGame: React.FC = () => {
+  const { data: session, update: updateSession } = useSession();
+  // Consolidate state management
+  const [gameState, setGameState] = useState<GameState>({
+    examples: [],
+    userAnswer: '',
+    currentQuestionIndex: 0,
+    currentQuestion: null,
+    score: 0,
+    streak: 0,
+    timeRemaining: 60,
+    gameStatus: 'loading',
+    level: session?.user?.level || '',
+    report: {},
+    feedback: [],
+    progress: 0,
+    isAnswerSubmitted: false,
+    questionStatus: 'playing',
+    isTimerRunning: true,
+    isShaking: false,
+  });
 
 
   const [jokers, setJokers] = useState({
@@ -41,44 +62,90 @@ const LanguageGame: React.FC = () => {
     skipQuestion: 10
   });
 
-  // Fetch game examples when component mounts
+  // Fetch game examples
+  const fetchGameExamples = useCallback(async () => {
+    try {
+      const url = gameState.level
+        ? `/api/game?level=${gameState.level}`
+        : `/api/game`
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch game examples');
+      }
+
+      const data = await response.json();
+
+      if (data.examples && data.examples.length > 0) {
+        setGameState(state => ({
+          ...state,
+          examples: data.examples,
+          currentQuestion: data.examples[0],
+          gameStatus: 'playing'
+        }));
+      } else {
+        throw new Error('No examples found');
+      }
+    } catch (error) {
+      console.error('Error fetching game examples:', error);
+      setGameState(state => ({ ...state, gameStatus: 'finished' }));
+    }
+  }, [gameState.level])
+
+
+  // Initial fetch effect
   useEffect(() => {
-    const fetchGameExamples = async () => {
-      try {
-        const url = session?.user.level || level
-          ? `/api/game?level=${session?.user?.level || level}`
-          : `/api/game`
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
+    fetchGameExamples();
+  }, [fetchGameExamples]);
+
+  // Update level from session
+  useEffect(() => {
+    if (session?.user?.level) {
+      setGameState(prev => ({
+        ...prev,
+        level: session.user.level || '',
+      }));
+    }
+  }, [session]);
+
+  // Main game logic methods
+  const updatePlayer = useCallback(async (newLevel: string) => {
+    try {
+      const response = await fetch('/api/game', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ level: newLevel }),
+      });
+
+      if (response.ok) {
+        // Update session
+        await updateSession({
+          user: {
+            ...session?.user,
+            level: newLevel,
           },
         });
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch game examples');
-        }
-
-        const data = await response.json();
-
-        if (data.examples && data.examples.length > 0) {
-          setExamples(data.examples);
-          setCurrentQuestion(data.examples[0]);
-          setGameStatus('playing');
-        } else {
-          throw new Error('No examples found');
-        }
-      } catch (error) {
-        console.error('Error fetching game examples:', error);
-        setGameStatus('finished');
+        // Update local state
+        setGameState(prev => ({
+          ...prev,
+          level: newLevel,
+        }));
       }
-    };
-
-    fetchGameExamples();
-  }, []);
+    } catch (error) {
+      console.error('Error updating player level:', error);
+    }
+  }, [session, updateSession]);
 
   const useHintJoker = () => {
-    if (jokers.hint > 0 && currentQuestion) {
+    if (jokers.hint > 0 && gameState.currentQuestion) {
       // Reveal first few letters of the answer
       // const partialAnswer = currentQuestion.dutch.slice(0, Math.ceil(currentQuestion.dutch.length / 2));
       // setUserAnswer(partialAnswer);
@@ -91,7 +158,7 @@ const LanguageGame: React.FC = () => {
   };
 
   const useRevealAnswerJoker = () => {
-    if (jokers.revealAnswer > 0 && currentQuestion) {
+    if (jokers.revealAnswer > 0 && gameState.currentQuestion) {
       // setUserAnswer(currentQuestion.dutch);
 
       setJokers(prev => ({
@@ -105,22 +172,22 @@ const LanguageGame: React.FC = () => {
   };
 
   const checkAnswer = () => {
-    if (!currentQuestion) return;
+    if (!gameState.currentQuestion) return;
 
-    if (!isAnswerSubmitted) {
-      const cleanedInputAnswer = userAnswer.toLowerCase().trim();
-      const cleanedCorrectAnswer = currentQuestion.dutch.toLowerCase().trim();
+    if (!gameState.isAnswerSubmitted) {
+      const cleanedInputAnswer = gameState.userAnswer.toLowerCase().trim();
+      const cleanedCorrectAnswer = gameState.currentQuestion.dutch.toLowerCase().trim();
 
       const isCorrect = cleanedInputAnswer === cleanedCorrectAnswer;
 
       if (isCorrect) {
         showAnswer();
       } else {
-        setIsShaking(true);
+        setGameState(state => ({ ...state, isShaking: true }))
 
         // Remove shake animation after it completes
         setTimeout(() => {
-          setIsShaking(false);
+          setGameState(state => ({ ...state, isShaking: false }))
         }, 500); // Match the animation duration
         // vibrate button
       }
@@ -129,60 +196,89 @@ const LanguageGame: React.FC = () => {
   }
 
   const showAnswer = useCallback((message?: string) => {
-    if (!currentQuestion) return;
+    if (!gameState.currentQuestion) return;
 
     // If answer hasn't been submitted yet, check the answer
-    if (!isAnswerSubmitted) {
-      const cleanedInputAnswer = userAnswer.toLowerCase().trim();
-      const cleanedCorrectAnswer = currentQuestion.dutch.toLowerCase().trim();
+    if (!gameState.isAnswerSubmitted) {
+      const cleanedInputAnswer = gameState.userAnswer.toLowerCase().trim();
+      const cleanedCorrectAnswer = gameState.currentQuestion.dutch.toLowerCase().trim();
 
       const isCorrect = cleanedInputAnswer === cleanedCorrectAnswer;
-      console.log(isCorrect, userAnswer, currentQuestion.dutch)
+      console.log(gameState.currentQuestion.level, isCorrect, gameState.userAnswer, gameState.currentQuestion.dutch)
       if (isCorrect) {
-        setQuestionStatus("success");
-        setScore((prev) => prev + 10 * (streak + 1));
-        setStreak((prev) => prev + 1);
-        setFeedback(['Correct! Great job! 🎉']);
-        setReport(prev => ({ ...prev, [currentQuestion._id!]: { level: currentQuestion.theme, result: "success" } }))
-      } else {
-        setQuestionStatus("failed");
-        setStreak(0);
-        setFeedback([message ? message : "", `The correct answer was: ${currentQuestion.dutch}`]);
-        setReport(prev => ({ ...prev, [currentQuestion._id!]: { level: currentQuestion.theme, result: "failed" } }))
-      }
+        setGameState(prev => ({
+          ...prev,
+          questionStatus: "success",
+          score: (prev.score + 10) * (prev.streak + 1),
+          streak: prev.streak + 1,
+          report: {
+            ...prev.report,
+            [gameState.currentQuestion!._id!]: {
+              level: gameState.currentQuestion!.theme, result: "success"
 
-      setProgress((prev) => Math.min(prev + 10, 100));
-      setIsAnswerSubmitted(true);
-      setIsTimerRunning(false);
+            }
+          },
+          feedback: ['Correct! Great job! 🎉'],
+          progress: Math.min(prev.progress + 10, 100),
+          isAnswerSubmitted: true,
+          isTimerRunning: false,
+        }))
+      } else {
+        setGameState(prev => ({
+          ...prev,
+          questionStatus: "failed",
+          streak: 0,
+          report: {
+            ...prev.report,
+            [gameState.currentQuestion!._id!]: {
+              level: gameState.currentQuestion!.theme, result: "failed"
+
+            }
+          },
+          feedback: [
+            message ? message : "Incorrect",
+            "The correct answer was:",
+            `${gameState.currentQuestion!.dutch}`],
+          progress: Math.min(prev.progress + 10, 100),
+          isAnswerSubmitted: true,
+          isTimerRunning: false,
+        }))
+      }
     }
     // If answer has been submitted, move to next question
     else {
       // Move to next question
-      const nextIndex = currentQuestionIndex + 1;
-      if (nextIndex < examples.length) {
-        setCurrentQuestionIndex(nextIndex);
-        setCurrentQuestion(examples[nextIndex]);
+      const nextIndex = gameState.currentQuestionIndex + 1;
+      if (nextIndex < gameState.examples.length) {
+        setGameState(state => ({
+          ...state,
+          questionStatus: 'playing',
+          currentQuestionIndex: nextIndex,
+          currentQuestion: gameState.examples[nextIndex],
+          userAnswer: '',
+          timeRemaining: 60,
+          feedback: [],
+          isAnswerSubmitted: false,
+          isTimerRunning: true,
+        }));
 
         // Reset states for new question
-        setUserAnswer('');
-        setFeedback([]);
-        setQuestionStatus("playing");
-        setIsAnswerSubmitted(false);
-        setTimeRemaining(60); // Reset timer
-        setIsTimerRunning(true);
       } else {
         // All questions answered
-        const result = calculateLevel(Object.values(report).map(({ level, result }) => ({ themeLevel: Number(level), isCorrect: result === "success" })))
-        setLevel(`${result}`)
+        const result = calculateLevel(Object.values(gameState.report).map(({ level, result }) => ({ themeLevel: Number(level), isCorrect: result === "success" })))
+        setGameState(state => ({
+          ...state,
+          level: `${result}`,
+          gameStatus: 'finished'
+        }))
         console.log("level: ", result)
-        updatePlayer(result)
-        setGameStatus('finished');
+        updatePlayer(`${result}`)
       }
     }
-  }, [currentQuestion, currentQuestionIndex, examples, isAnswerSubmitted, report, streak, userAnswer]);
+  }, [gameState.currentQuestion, gameState.currentQuestionIndex, gameState.examples, gameState.isAnswerSubmitted, gameState.report, gameState.streak, gameState.userAnswer]);
 
 
-  const updatePlayer = async (level: number) => {
+  /* const updatePlayer = async (level: number) => {
 
     try {
       const response = await fetch('/api/game', {
@@ -196,83 +292,77 @@ const LanguageGame: React.FC = () => {
       if (!response.ok) {
         throw new Error('Failed to update player');
       }
-      setLevel(`${level}`)
+      setGameState(state => ({ ...state, level: `${result}` }))
       const result = await response.json();
       console.log('Player updated successfully:', result);
     } catch (error) {
       console.error('Error updating player:', error);
     }
-  }
+  } */
 
   // Timer effect
   useEffect(() => {
-    if (gameStatus !== 'playing' || !isTimerRunning) return;
+    if (gameState.gameStatus !== 'playing' || !gameState.isTimerRunning) return;
 
-    if (timeRemaining > 0) {
+    if (gameState.timeRemaining > 0) {
       const timer = setInterval(() => {
-        setTimeRemaining((prev) => prev - 1);
+        setGameState((prev) => ({ ...prev, timeRemaining: prev.timeRemaining - 1 }));
       }, 1000);
 
       return () => clearInterval(timer);
     } else {
       showAnswer("Time's up! ⏰")
     }
-  }, [timeRemaining, gameStatus, isTimerRunning, showAnswer]);
+  }, [gameState.timeRemaining, gameState.gameStatus, gameState.isTimerRunning, showAnswer]);
 
-  useEffect(() => {
-    setLevel(session?.user?.level || '')
-  }, [session])
 
-  // Loading state
-  if (gameStatus === 'loading') {
-    return (
-      <Card className="max-w-2xl mx-auto p-6 text-center">
-        Loading game...
-      </Card>
-    );
-  }
+  const renderLoadingState = () => (
+    <Card className="max-w-2xl mx-auto p-6 text-center">
+      Loading game...
+    </Card>
+  );
 
-  // Game over states "Time's up! ⏰"
-  if (gameStatus === 'finished') {
-    return (
-      <Card className="max-w-2xl mx-auto p-6 space-y-6">
-        <div className="text-center space-y-4">
-          <h3 className="text-xl font-bold">
-            {'Congratulations! 🎉'}
-          </h3>
-          <p>Final Score: {score}</p>
-          <p>{getMotivationPhrase(Object.values(report).map(({ result }) => (result === "success")).filter(r => r).length)}</p>
-          <p>Your level is {level}</p>
-          <Button
-            onClick={() => {
-              // Reset everything
-              setGameStatus('loading');
-              setScore(0);
-              setStreak(0);
-              setProgress(0);
-              setTimeRemaining(60);
-              setCurrentQuestionIndex(0);
-              // Trigger a new game fetch
-              window.location.reload();
-            }}
-            className="bg-green-500 hover:bg-green-600"
-          >
-            Play Again
-          </Button>
-        </div>
-      </Card>
-    );
-  }
 
-  // Main game render
-  return (
-    <Card className={`max-w-2xl mx-auto p-6 space-y-6 ${isShaking ? 'animate-shake' : ''}`}>
+  const renderFinishedState = () => (
+    <Card className="max-w-2xl mx-auto p-6 space-y-6">
+      <div className="text-center space-y-4">
+        <h3 className="text-xl font-bold">
+          {'Congratulations! 🎉'}
+        </h3>
+        <p>Final Score: {gameState.score}</p>
+        <p>{getMotivationPhrase(Object.values(gameState.report).map(({ result }) => (result === "success")).filter(r => r).length)}</p>
+        <p>Your level is {gameState.level}</p>
+        <Button
+          onClick={() => {
+            // Reset everything
+            setGameState(state => ({
+              ...state,
+              currentQuestionIndex: 0,
+              score: 0,
+              streak: 0,
+              timeRemaining: 60,
+              gameStatus: 'loading',
+              progress: 0
+            }));
+            // Trigger a new game fetch
+            window.location.reload();
+          }}
+          className="bg-green-500 hover:bg-green-600"
+        >
+          Play Again
+        </Button>
+      </div>
+    </Card>
+  )
+
+  const renderGamePlay = () => (
+    <Card className={`max-w-2xl mx-auto p-6 space-y-6 ${gameState.isShaking ? 'animate-shake' : ''}`}>
       <div className="flex space-x-4">
         {/* Hint Joker */}
         <JokerButton
           onClick={useHintJoker}
           count={jokers.hint}
-          disabled={isAnswerSubmitted}
+          disabled={gameState.isAnswerSubmitted}
           variant={'blue'}
           animationVariant="bubbly"
         >
@@ -283,7 +373,7 @@ const LanguageGame: React.FC = () => {
         <JokerButton
           onClick={useRevealAnswerJoker}
           count={jokers.revealAnswer}
-          disabled={isAnswerSubmitted}
+          disabled={gameState.isAnswerSubmitted}
           variant={'purple'}
           animationVariant="bubbly"
         >
@@ -293,7 +383,7 @@ const LanguageGame: React.FC = () => {
         {/* Check answer Joker */}
         <JokerButton
           onClick={checkAnswer}
-          disabled={isAnswerSubmitted}
+          disabled={gameState.isAnswerSubmitted}
           variant={'yellow'}
           animationVariant="bubbly"
         >
@@ -306,41 +396,44 @@ const LanguageGame: React.FC = () => {
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-2">
           <span className="text-lg font-bold">Level:</span>
-          <span className="text-lg font-bold">{level}</span>
+          <span className="text-lg font-bold">{gameState.level}</span>
           <Award className="w-5 h-5 text-yellow-500" />
         </div>
         <div className="flex items-center space-x-2">
           <Coins className="w-5 h-5 text-yellow-500" />
-          <span className="font-bold">{score}</span>
+          <span className="font-bold">{gameState.score}</span>
         </div>
         <div className="flex items-center space-x-2">
-          <span className="font-medium">{timeRemaining}s</span>
+          <span className="font-medium">{gameState.timeRemaining}s</span>
           <Timer className="w-5 h-5 text-blue-500" />
         </div>
       </div>
 
-      <Progress value={progress} className="w-full" />
+      <Progress value={gameState.progress} className="w-full" />
 
-      {currentQuestion && (
+      {gameState.currentQuestion && (
         <div className="space-y-4">
           <div className="text-center">
             <div className="text-sm text-gray-500 mb-2">
-              Level: {currentQuestion.level} - {currentQuestion.theme}
+              Level: {gameState.currentQuestion.level} - {gameState.currentQuestion.theme}
             </div>
-            <div className="text-xl font-medium">{currentQuestion.turkish}</div>
+            <div className="text-xl font-medium">{gameState.currentQuestion.turkish}</div>
           </div>
 
           <LetterInput
-            expectedAnswer={currentQuestion.dutch}
-            onAnswerComplete={setUserAnswer}
-            questionStatus={questionStatus}
+            expectedAnswer={gameState.currentQuestion.dutch}
+            onAnswerComplete={(answer) => setGameState(state => ({ ...state, userAnswer: answer }))}
+            questionStatus={gameState.questionStatus}
             onEnter={showAnswer}
           />
 
-          {feedback && feedback.length > 0 && (
-            feedback.map(fb => (
+          {gameState.feedback && gameState.feedback.length > 0 && (
+            gameState.feedback.map(fb => (
               <div
-                className={`text-center px-2 rounded ${feedback.some(fb => fb.startsWith('Correct')) ? 'text-green-600' : 'text-red-600'
+                className={`text-center px-2 rounded 
+                  ${gameState.feedback.some(fb => fb.startsWith('Correct'))
+                    ? 'text-green-600'
+                    : 'text-red-600'
                   }`}
               >
                 {fb}
@@ -353,12 +446,32 @@ const LanguageGame: React.FC = () => {
             onClick={() => showAnswer()}
             className="w-full"
           >
-            {isAnswerSubmitted ? 'Next Question' : 'Show Answer'}
+            {gameState.isAnswerSubmitted ? 'Next Question' : 'Show Answer'}
           </Button>
         </div>
       )}
     </Card>
   );
+
+  // Main render method
+  const renderGame = () => {
+    switch (gameState.gameStatus) {
+      case 'loading':
+        return renderLoadingState();
+      case 'finished':
+        return renderFinishedState();
+      case 'playing':
+      default:
+        return renderGamePlay();
+    }
+  };
+
+  return (
+    <div>
+      {renderGame()}
+    </div>
+  );
+
 };
 
 export default LanguageGame;
