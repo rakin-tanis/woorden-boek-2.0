@@ -42,7 +42,7 @@ export default function UserPanel() {
   const fetchUsers = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/users?page=${page}&limit=${itemsPerPage}&search=${encodeURIComponent(searchTerm)}`);
+      const response = await fetch(`/api/user?page=${page}&limit=${itemsPerPage}&search=${encodeURIComponent(searchTerm)}`);
       const data = await response.json();
 
       if (!response.ok) throw new Error(data.error);
@@ -75,7 +75,7 @@ export default function UserPanel() {
 
   const handleDeleteConfirm = async () => {
     try {
-      const response = await fetch(`/api/users?userId=${userToDeleteId}`, {
+      const response = await fetch(`/api/user?userId=${userToDeleteId}`, {
         method: 'DELETE',
       });
       fetchUsers(); // Refetch users after deletion
@@ -110,7 +110,7 @@ export default function UserPanel() {
     setIsUpdateLoading(true);
     try {
       const userId = user._id
-      const response = await fetch(`/api/users/${userId}`, {
+      const response = await fetch(`/api/user/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'

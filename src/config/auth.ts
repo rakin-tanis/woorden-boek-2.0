@@ -229,29 +229,30 @@ Provide a detailed approach to how you would design and implement this game.
 Game Design Philosophy
 
 
-Instead of a hangman-style game, I've designed a more direct translation challenge that focuses on active recall
-The interface is clean and distraction-free to keep users focused on learning
-Mobile-first design with large touch targets and readable text
+* Instead of a hangman-style game, I've designed a more direct translation challenge that focuses on active recall
+* The interface is clean and distraction-free to keep users focused on learning
+* Mobile-first design with large touch targets and readable text
 
 
 Gameplay Mechanics
 
 
-Session Length: 5-7 minutes (optimal for maintaining focus)
-Questions per session: 10-12 questions (allowing ~30 seconds per question)
-Progressive difficulty within themes
-Streak system to encourage consistent performance
+* Session Length: 5-7 minutes (optimal for maintaining focus)
+* Questions per session: 10-12 questions (allowing ~30 seconds per question)
+* Progressive difficulty within themes
+* Streak system to encourage consistent performance
 
 
 Time Management
 
 
-60-second timer per session rather than per question
+* 60-second timer per session rather than per question
+
 Rationale:
 
-Creates urgency without excessive pressure
-Allows players to spend more time on challenging questions
-Prevents frustration on difficult translations
+* Creates urgency without excessive pressure
+* Allows players to spend more time on challenging questions
+* Prevents frustration on difficult translations
 
 
 
@@ -259,21 +260,21 @@ Prevents frustration on difficult translations
 Scoring System
 
 
-Base points: 10 points per correct answer
-Streak multiplier: Points × (streak + 1)
-Progress bar shows completion towards session goal
-Persistent high scores to track improvement
+* Base points: 10 points per correct answer
+* Streak multiplier: Points × (streak + 1)
+* Progress bar shows completion towards session goal
+* Persistent high scores to track improvement
 
 
 Adaptive Difficulty Algorithm
 
 
-Initial placement test determines starting level
-Difficulty adjusts based on:
+* Initial placement test determines starting level
+* Difficulty adjusts based on:
 
-Current streak (3+ correct answers triggers level up)
-Success rate in current theme
-Time taken to answer
+* Current streak (3+ correct answers triggers level up)
+* Success rate in current theme
+* Time taken to answer
 
 
 Smooth difficulty progression to maintain engagement
