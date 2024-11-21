@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Progress } from '@/components/ui/Progress';
 import { Button } from '@/components/ui/Button';
@@ -8,16 +8,18 @@ import { Timer, Trophy, Lightbulb, Eye, Zap } from 'lucide-react';
 import { LetterInput } from './LetterInput';
 import { Example } from '@/types';
 import JokerButton from './JokerButton';
+import { calculateLevel, getMotivationPhrase } from '@/lib/game';
 
-type GameStatus = 'loading' | 'playing' | 'success' | 'failed';
+type GameStatus = 'loading' | 'playing' | 'finished';
 type QuestionStatus = 'playing' | 'success' | 'failed'
 
 const LanguageGame: React.FC = () => {
   const [examples, setExamples] = useState<Example[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
   const [currentQuestion, setCurrentQuestion] = useState<Example | null>(null);
-
+  const [report, setReport] = useState<Record<string, { level: string, result: string }>>({})
   const [userAnswer, setUserAnswer] = useState<string>('');
+
   const [score, setScore] = useState<number>(0);
   const [streak, setStreak] = useState<number>(0);
   const [timeRemaining, setTimeRemaining] = useState<number>(60);
@@ -61,32 +63,12 @@ const LanguageGame: React.FC = () => {
         }
       } catch (error) {
         console.error('Error fetching game examples:', error);
-        setGameStatus('failed');
+        setGameStatus('finished');
       }
     };
 
     fetchGameExamples();
   }, []);
-
-
-  /* // Simulated difficulty adjustment
-  const calculateNextDifficulty = (
-    currentLevel: 'A1' | 'A2' | 'B1' | 'B2',
-    success: boolean
-  ): 'A1' | 'A2' | 'B1' | 'B2' => {
-    const levels = ['A1', 'A2', 'B1', 'B2'] as const;
-    const currentIndex = levels.indexOf(currentLevel);
-
-    if (success && streak > 3) {
-      return levels[Math.min(currentIndex + 1, levels.length - 1)];
-    }
-
-    if (!success && streak === 0) {
-      return levels[Math.max(currentIndex - 1, 0)];
-    }
-
-    return currentLevel;
-  }; */
 
   const useHintJoker = () => {
     return
@@ -141,7 +123,7 @@ const LanguageGame: React.FC = () => {
 
   }
 
-  const showAnswer = () => {
+  const showAnswer = useCallback((message?: string) => {
     if (!currentQuestion) return;
 
     // If answer hasn't been submitted yet, check the answer
@@ -156,13 +138,15 @@ const LanguageGame: React.FC = () => {
         setScore((prev) => prev + 10 * (streak + 1));
         setStreak((prev) => prev + 1);
         setFeedback('Correct! Great job! 🎉');
+        setReport(prev => ({ ...prev, [currentQuestion._id!]: { level: currentQuestion.theme, result: "success" } }))
       } else {
         setQuestionStatus("failed");
         setStreak(0);
-        setFeedback(`The correct answer was: ${currentQuestion.dutch}`);
+        setFeedback(message ? `${message} The correct answer was: ${currentQuestion.dutch}` : `The correct answer was: ${currentQuestion.dutch}`);
+        setReport(prev => ({ ...prev, [currentQuestion._id!]: { level: currentQuestion.theme, result: "failed" } }))
       }
 
-      setProgress((prev) => Math.min(prev + 20, 100));
+      setProgress((prev) => Math.min(prev + 10, 100));
       setIsAnswerSubmitted(true);
       setIsTimerRunning(false);
     }
@@ -183,10 +167,13 @@ const LanguageGame: React.FC = () => {
         setIsTimerRunning(true);
       } else {
         // All questions answered
-        setGameStatus('success');
+        console.log(report)
+        const result = calculateLevel(Object.values(report).map(({ level, result }) => ({ themeLevel: Number(level), isCorrect: result === "success" })))
+        console.log(result)
+        setGameStatus('finished');
       }
     }
-  };
+  }, [currentQuestion, currentQuestionIndex, examples, isAnswerSubmitted, report, streak, userAnswer]);
 
   // Timer effect
   useEffect(() => {
@@ -199,9 +186,9 @@ const LanguageGame: React.FC = () => {
 
       return () => clearInterval(timer);
     } else {
-      showAnswer()
+      showAnswer("Time's up! ⏰ </br>")
     }
-  }, [timeRemaining, gameStatus, isTimerRunning]);
+  }, [timeRemaining, gameStatus, isTimerRunning, showAnswer]);
 
   // Loading state
   if (gameStatus === 'loading') {
@@ -212,15 +199,16 @@ const LanguageGame: React.FC = () => {
     );
   }
 
-  // Game over states
-  if (gameStatus === 'success' || gameStatus === 'failed') {
+  // Game over states "Time's up! ⏰"
+  if (gameStatus === 'finished') {
     return (
       <Card className="max-w-2xl mx-auto p-6 space-y-6">
         <div className="text-center space-y-4">
           <h3 className="text-xl font-bold">
-            {gameStatus === 'success' ? 'Congratulations! 🎉' : "Time's up! ⏰"}
+            {'Congratulations! 🎉'}
           </h3>
           <p>Final Score: {score}</p>
+          <p>{getMotivationPhrase(Object.values(report).map(({ result }) => (result === "success")).filter(r => r).length)}</p>
           <Button
             onClick={() => {
               // Reset everything
@@ -268,7 +256,7 @@ const LanguageGame: React.FC = () => {
           <Eye className="w-5 h-5" />
         </JokerButton>
 
-        {/* Skip Question Joker */}
+        {/* Check answer Joker */}
         <JokerButton
           onClick={checkAnswer}
           disabled={isAnswerSubmitted}
@@ -306,6 +294,7 @@ const LanguageGame: React.FC = () => {
             expectedAnswer={currentQuestion.dutch}
             onAnswerComplete={setUserAnswer}
             questionStatus={questionStatus}
+            onEnter={showAnswer}
           />
 
           {feedback && (
@@ -318,7 +307,7 @@ const LanguageGame: React.FC = () => {
           )}
 
           <Button
-            onClick={showAnswer}
+            onClick={() => showAnswer()}
             className="w-full"
           >
             {isAnswerSubmitted ? 'Next Question' : 'Show Answer'}

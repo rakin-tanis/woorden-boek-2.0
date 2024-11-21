@@ -1,15 +1,17 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 
 interface LetterInputProps {
   expectedAnswer: string;
   onAnswerComplete: (answer: string) => void;
   questionStatus: 'playing' | 'success' | 'failed';
+  onEnter: () => void
 }
 
 export const LetterInput: React.FC<LetterInputProps> = ({
   expectedAnswer,
   onAnswerComplete,
-  questionStatus
+  questionStatus,
+  onEnter,
 }) => {
   const [userAnswer, setUserAnswer] = useState<string[]>([]);
   const [focusedIndex, setFocusedIndex] = useState<number>(0);
@@ -19,7 +21,12 @@ export const LetterInput: React.FC<LetterInputProps> = ({
   // Prepare input fields based on expected answer
   useEffect(() => {
     setUserAnswer(expectedAnswer.split('').map(c => !isAllowedLetter(c) ? c : ''));
-    setFocusedIndex(0);
+    const firstAllowedInput = inputRefs.current.find((ref, index) => ref !== null && isAllowedLetter(expectedAnswer[index]));
+
+    if (firstAllowedInput) {
+      firstAllowedInput.focus();
+      setFocusedIndex(inputRefs.current.indexOf(firstAllowedInput));
+    }
   }, [expectedAnswer]);
 
   // Check if answer is complete
@@ -28,13 +35,37 @@ export const LetterInput: React.FC<LetterInputProps> = ({
     // }
   }, [userAnswer]);
 
+
+  const focusNext = useCallback(() => {
+    let index = focusedIndex;
+    do {
+      if (index + 1 > inputRefs.current.length - 1) {
+        break;
+      }
+      index++
+    } while (!isAllowedLetter(expectedAnswer[index]))
+    setFocusedIndex(index);
+    inputRefs.current[index]?.focus();
+  }, [expectedAnswer, focusedIndex])
+
+  const focusPrevious = useCallback(() => {
+    let index = focusedIndex;
+    do {
+      if (index - 1 < 0) {
+        break;
+      }
+      index--
+    } while (!isAllowedLetter(expectedAnswer[index]))
+
+    setFocusedIndex(index);
+    inputRefs.current[index]?.focus();
+  }, [expectedAnswer, focusedIndex])
+
   // Handle keyboard events
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ensure the container is focused
       if (!containerRef.current?.contains(document.activeElement)) return;
-
-
 
       const key = e.key;
       // Allow only single alphabetic characters
@@ -66,6 +97,10 @@ export const LetterInput: React.FC<LetterInputProps> = ({
         }
         setUserAnswer(newAnswer);
       }
+
+      if (key === "Enter") {
+        onEnter()
+      }
     };
 
     // Add event listener to document
@@ -75,32 +110,9 @@ export const LetterInput: React.FC<LetterInputProps> = ({
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [userAnswer, focusedIndex, questionStatus]);
+  }, [userAnswer, focusedIndex, questionStatus, expectedAnswer, focusNext, focusPrevious, onEnter]);
 
-  const focusNext = () => {
-    let index = focusedIndex;
-    do {
-      if (index + 1 > inputRefs.current.length - 1) {
-        break;
-      }
-      index++
-    } while (!isAllowedLetter(expectedAnswer[index]))
-    setFocusedIndex(index);
-    inputRefs.current[index]?.focus();
-  }
 
-  const focusPrevious = () => {
-    let index = focusedIndex;
-    do {
-      if (index - 1 < 0) {
-        break;
-      }
-      index--
-    } while (!isAllowedLetter(expectedAnswer[index]))
-
-    setFocusedIndex(index);
-    inputRefs.current[index]?.focus();
-  }
 
   const assignInputRef = (el: HTMLDivElement | null, letterIndex: number) => {
     if (el) {
@@ -132,13 +144,13 @@ export const LetterInput: React.FC<LetterInputProps> = ({
               ref={(el) => assignInputRef(el, letterIndexCopy)}
               tabIndex={letterIndex}
               onClick={() => setFocusedIndex(index)}
-              style={{ 
-                ...(questionStatus === 'success' && { 
-                  animationDelay: `${index * 30}ms` 
+              style={{
+                ...(questionStatus === 'success' && {
+                  animationDelay: `${index * 30}ms`
                 }),
                 animationFillMode: 'forwards'
               }}
-              className={`w-10 h-12 border rounded flex items-center justify-center
+              className={`relative w-10 h-12 border rounded flex items-center justify-center
                 transition-all duration-300 ease-in-out
                 ${!isAllowedLetter(expectedAnswer[letterIndexCopy]) ? 'border-gray-800' : 'border-gray-600'} 
                 ${focusedIndex === index ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-300'}
@@ -165,6 +177,8 @@ export const LetterInput: React.FC<LetterInputProps> = ({
           </div>
         );
       })}
+
+
     </div>
   );
 

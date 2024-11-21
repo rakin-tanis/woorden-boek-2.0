@@ -88,57 +88,62 @@ const getFistGameExamples = async () => {
   const client = await clientPromise;
   const examplesCollection = client.db("woorden-boek").collection("examples");
 
-  // First-time game: Select 10 A1 examples from themes 1-10
-  const gameExamples = (
-    await examplesCollection
-      .aggregate([
-        {
-          $match: {
-            level: "A1",
-            theme: {
-              $in: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
-            },
-            status: "published",
-          },
-        },
-        {
-          $group: {
-            _id: "$theme",
-            example: { $first: "$$ROOT" },
-          },
-        },
-        {
-          $sample: { size: 10 },
-        },
-        {
-          $replaceRoot: { newRoot: "$example" },
-        },
-      ])
-      .toArray()
-  ).map((doc) => ({
-    _id: doc._id.toString(),
-    dutch: doc.dutch,
-    turkish: doc.turkish,
-    level: doc.level,
-    source: doc.source,
-    words: doc.words || [],
-    tags: doc.tags || [],
-    theme: doc.theme,
-    status: doc.status,
-  }));
+  const themeDistribution = {
+    "1": 3,
+    "2": 2,
+    "3": 1,
+    "4": 1,
+    "5": 1,
+    "6": 1,
+    "7": 0,
+    "8": 0,
+    "9": 0,
+    "10": 1,
+  } as const;
 
-  if (gameExamples.length < 10) {
-    // Option 1: Throw an error
-    if (gameExamples.length < 10) {
-      throw new Error(
-        `Not enough unique themes. Found only ${gameExamples.length} themes.`
+  const gameExamples: Example[] = [];
+
+  for (const theme of Object.keys(themeDistribution)) {
+    const requiredCount =
+      themeDistribution[theme as keyof typeof themeDistribution];
+
+    if (requiredCount > 0) {
+      const examples = await examplesCollection
+        .find({
+          level: "A1",
+          theme: theme,
+          status: "published",
+        })
+        .limit(requiredCount)
+        .toArray();
+
+      // Add the found examples to the gameExamples array
+      gameExamples.push(
+        ...examples.map((doc) => ({
+          _id: doc._id.toString(),
+          dutch: doc.dutch,
+          turkish: doc.turkish,
+          level: doc.level,
+          source: doc.source,
+          words: doc.words || [],
+          tags: doc.tags || [],
+          theme: doc.theme,
+          status: doc.status,
+        }))
       );
-      // return NextResponse.json(
-      //   { message: `Not enough unique themes. Found only ${gameExamples.length} themes.` },
-      //   { status: 500 }
-      // );
     }
   }
 
-  return gameExamples;
+  // Check if we have enough unique examples
+  const uniqueExamples = [
+    ...new Map(gameExamples.map((item) => [item._id, item])).values(),
+  ];
+
+  if (uniqueExamples.length < 10) {
+    throw new Error(
+      `Not enough unique themes. Found only ${uniqueExamples.length} themes.`
+    );
+  }
+
+  return uniqueExamples;
 };
