@@ -1,35 +1,52 @@
 import clientPromise from "@/lib/mongodb";
-import { getServerSession } from "next-auth";
-import { Example } from "@/types";
-import { NextResponse } from "next/server";
+import { Example, Player, ThemeDistribution } from "@/types";
+import { NextRequest, NextResponse } from "next/server";
+import { generateQuestionDistribution } from "@/lib/game";
+import { getServerSession } from "@/lib/auth";
 
-export async function POST() {
+const firstGameDistribution = [
+  {
+    theme: 1,
+    questionCount: 3,
+  },
+  {
+    theme: 2,
+    questionCount: 2,
+  },
+  {
+    theme: 3,
+    questionCount: 1,
+  },
+  {
+    theme: 4,
+    questionCount: 1,
+  },
+  {
+    theme: 5,
+    questionCount: 1,
+  },
+  {
+    theme: 6,
+    questionCount: 1,
+  },
+  {
+    theme: 10,
+    questionCount: 1,
+  },
+];
+
+export async function GET(request: NextRequest) {
   try {
-    // Verify user is authenticated
-    const session = await getServerSession();
-
-    console.log("api/game");
-    const client = await clientPromise;
-    const usersCollection = client.db("woorden-boek").collection("users");
-
-    // Find the user
-
+    const { searchParams } = new URL(request.url);
+    const level = parseInt(searchParams.get("level") || "");
+    console.log("GET api/game");
+    console.log(level);
     let gameExamples: Example[];
-
-    if (session?.user) {
-      const user = await usersCollection.findOne({
-        email: session?.user.email,
-      });
-
-      if (user?.gameLevel) {
-        // Experienced user:
-        // 7 examples from current level and theme
-        gameExamples = await getExperiencedUserExamples(user.gameLevel);
-      } else {
-        gameExamples = await getFistGameExamples();
-      }
+    if (level) {
+      // Experienced user:
+      gameExamples = await getGameExamples(generateQuestionDistribution(level));
     } else {
-      gameExamples = await getFistGameExamples();
+      gameExamples = await getGameExamples(firstGameDistribution);
     }
     // Shuffle the examples to randomize order
     gameExamples.sort(() => 0.5 - Math.random());
@@ -45,76 +62,25 @@ export async function POST() {
   }
 }
 
-const getExperiencedUserExamples = async (gameLevel: string) => {
+const getGameExamples = async (distribution: ThemeDistribution[]) => {
   const client = await clientPromise;
   const examplesCollection = client.db("woorden-boek").collection("examples");
-
-  const currentLevelExamples = await examplesCollection
-    .find({
-      level: "A1",
-      theme: gameLevel,
-      status: "published",
-    })
-    .limit(7)
-    .toArray();
-
-  // 3 examples from next theme
-  const nextThemeExamples = await examplesCollection
-    .find({
-      level: "A1",
-      theme: (gameLevel + 1).toString(),
-      status: "published",
-    })
-    .limit(3)
-    .toArray();
-
-  const gameExamples = [...currentLevelExamples, ...nextThemeExamples].map(
-    (doc) => ({
-      _id: doc._id.toString(),
-      dutch: doc.dutch,
-      turkish: doc.turkish,
-      level: doc.level,
-      source: doc.source,
-      words: doc.words || [],
-      tags: doc.tags || [],
-      theme: doc.theme,
-      status: doc.status,
-    })
-  );
-  return gameExamples;
-};
-
-const getFistGameExamples = async () => {
-  const client = await clientPromise;
-  const examplesCollection = client.db("woorden-boek").collection("examples");
-
-  const themeDistribution = {
-    "1": 3,
-    "2": 2,
-    "3": 1,
-    "4": 1,
-    "5": 1,
-    "6": 1,
-    "7": 0,
-    "8": 0,
-    "9": 0,
-    "10": 1,
-  } as const;
 
   const gameExamples: Example[] = [];
 
-  for (const theme of Object.keys(themeDistribution)) {
-    const requiredCount =
-      themeDistribution[theme as keyof typeof themeDistribution];
-
-    if (requiredCount > 0) {
+  for (const theme of distribution) {
+    if (theme.questionCount > 0) {
       const examples = await examplesCollection
-        .find({
-          level: "A1",
-          theme: theme,
-          status: "published",
-        })
-        .limit(requiredCount)
+        .aggregate([
+          {
+            $match: {
+              level: "A1",
+              theme: `${theme.theme}`,
+              status: "published",
+            },
+          },
+          { $sample: { size: theme.questionCount } }, // Randomly sample 7 documents
+        ])
         .toArray();
 
       // Add the found examples to the gameExamples array
@@ -147,3 +113,52 @@ const getFistGameExamples = async () => {
 
   return uniqueExamples;
 };
+
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const session = await getServerSession();
+
+    if (!session?.user)
+      return NextResponse.json({ message: "unauthorized" }, { status: 401 });
+
+    const client = await clientPromise;
+    const playersCollection = client.db("woorden-boek").collection("players");
+
+    const player: Player = {
+      userId: session.user.id!,
+      name: session.user.name!,
+      level: body.level,
+    };
+
+    const result = await playersCollection.updateOne(
+      { userId: player.userId }, 
+      {
+        $set: {
+          userId: session.user.id,
+          name: player.name,
+          level: player.level,
+        },
+      }, 
+      { upsert: true }
+    );
+
+    session.user.level = body.level;
+
+    return NextResponse.json(
+      {
+        message: "Player updated successfully",
+        updatedCount: result.modifiedCount,
+        upsertedCount: result.upsertedCount,
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error updating player:", error);
+    return NextResponse.json(
+      { message: `Internal server error: ${error}` },
+      { status: 500 }
+    );
+  }
+}

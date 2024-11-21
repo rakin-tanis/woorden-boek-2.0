@@ -24,6 +24,7 @@ export const authOptions: NextAuthOptions = {
           createdAt: new Date(),
           lastLoginAt: new Date(),
           provider: "google",
+          level: profile.level,
         };
       },
       authorization: {
@@ -67,6 +68,11 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Account is not active");
         }
 
+        const playerCollection = client
+          .db("woorden-boek")
+          .collection("players");
+        const player = await playerCollection.findOne({ userId: user._id });
+
         const lastLoginAt = new Date();
         await usersCollection.updateOne(
           { _id: new ObjectId(user._id) },
@@ -84,6 +90,7 @@ export const authOptions: NextAuthOptions = {
           createdAt: user.createdAt,
           lastLoginAt: lastLoginAt,
           provider: "google",
+          level: player?.level,
         };
       },
     }),
@@ -106,6 +113,13 @@ export const authOptions: NextAuthOptions = {
           user.status = "ACTIVE";
           user.isEmailVerified = true;
         } else {
+          const playerCollection = client
+            .db("woorden-boek")
+            .collection("players");
+          const player = await playerCollection.findOne({
+            userId: existingUser._id,
+          });
+
           const lastLoginAt = new Date();
           await usersCollection.updateOne(
             { _id: new ObjectId(existingUser._id) },
@@ -115,6 +129,7 @@ export const authOptions: NextAuthOptions = {
           user.role = existingUser.role;
           user.status = existingUser.status;
           user.isEmailVerified = existingUser.isEmailVerified;
+          user.level = player?.level;
         }
       }
       return true;
@@ -125,6 +140,7 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.status = user.status;
         token.isEmailVerified = user.isEmailVerified;
+        token.level = user.level || "1";
       }
       return token;
     },
@@ -134,6 +150,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         session.user.status = token.status as string;
         session.user.isEmailVerified = token.isEmailVerified as boolean;
+        session.user.level = token.level as string;
       }
       return session;
     },
@@ -182,7 +199,6 @@ export const authOptions: NextAuthOptions = {
     },
   },
 };
-
 
 /* 
 sen bir senior oyun geliştiricisin. asagida bahsettigim kriterler cercevesinde bir oyun tasarlamani istiyorum.

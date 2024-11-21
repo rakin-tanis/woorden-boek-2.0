@@ -69,3 +69,14 @@ export interface TableFilters {
   sources: string[];
   statuses: string[];
 }
+
+export interface Player {
+  userId: string;
+  name: string;
+  level: number;
+}
+
+export interface ThemeDistribution {
+  theme: number;
+  questionCount: number;
+}

@@ -10,6 +10,7 @@ declare module "next-auth" {
       name?: string;
       status?: string;
       isEmailVerified: boolean;
+      level?: string;
     };
   }
 
@@ -21,5 +22,6 @@ declare module "next-auth" {
     name?: string;
     status?: string;
     isEmailVerified: boolean;
+    level?: string;
   }
 }

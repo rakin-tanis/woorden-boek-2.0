@@ -1,9 +1,8 @@
-import { NextApiRequest, NextApiResponse } from "next";
 import clientPromise from "@/lib/mongodb";
 import { getServerSession } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
-export async function GET(req: NextApiRequest, res: NextApiResponse) {
+export async function GET() {
   try {
     // Verify user is authenticated
     const session = await getServerSession();
@@ -24,9 +23,12 @@ export async function GET(req: NextApiRequest, res: NextApiResponse) {
     }
 
     // Return user's game level if exists
-    return res.status(200).json({
-      level: user.gameLevel || null,
-    });
+    return NextResponse.json(
+      {
+        level: user.gameLevel || null,
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error checking user level:", error);
     return NextResponse.json(

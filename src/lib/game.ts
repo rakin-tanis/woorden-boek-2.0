@@ -1,3 +1,5 @@
+import { ThemeDistribution } from "@/types";
+
 interface Question {
   themeLevel: number; // 1-10 representing theme difficulty
   isCorrect: boolean; // Whether player answered correctly
@@ -167,12 +169,7 @@ const calculateLevel = (
     (weightedScore / totalWeight) *
     (config.maxLevel / config.totalQuestions) *
     totalCorrectAnswers;
-  console.log(
-    weightedScore,
-    totalWeight,
-    config.maxLevel,
-    config.totalQuestions
-  );
+
   // Round and constrain to 1-10 range
   return Math.max(1, Math.min(config.maxLevel, Math.round(rawLevel)));
 };
@@ -184,5 +181,62 @@ const getMotivationPhrase = (correctNumber: number) => {
     .phrases[random];
 };
 
-export { calculateLevel, getMotivationPhrase };
+const generateQuestionDistribution = (
+  level: number,
+  totalQuestions: number = 10,
+  maxTheme: number = 50
+) => {
+  level = Math.max(1, Math.min(10, level));
+
+  // Calculate the base theme for the student's level
+  const baseTheme = level;
+
+  // Calculate theme range
+  const minTheme = Math.max(1, baseTheme - 3);
+  const maxReachableTheme = Math.min(maxTheme, baseTheme + 3);
+
+  // Distribution strategy
+  const distribution: ThemeDistribution[] = [
+    // Easier themes (below student's level)
+    { theme: minTheme, questionCount: 1 },
+    { theme: Math.min(maxTheme, minTheme + 1), questionCount: 1 },
+
+    // Themes close to student's level
+    { theme: Math.max(1, baseTheme - 1), questionCount: 1 },
+    { theme: baseTheme, questionCount: 4 },
+    { theme: Math.min(baseTheme + 1), questionCount: 1 },
+
+    // Slightly challenging themes
+    { theme: Math.max(1, maxReachableTheme - 1), questionCount: 1 },
+    { theme: maxReachableTheme, questionCount: 1 },
+  ];
+
+  // Adjust if total questions don't match
+  const currentTotal = distribution.reduce(
+    (sum, item) => sum + item.questionCount,
+    0
+  );
+  if (currentTotal !== totalQuestions) {
+    // Distribute remaining or excess questions to the base theme
+    distribution.find((d) => d.theme === baseTheme)!.questionCount +=
+      totalQuestions - currentTotal;
+  }
+
+  const groupedByTheme: ThemeDistribution[] = Object.values(
+    distribution.reduce<Record<number, ThemeDistribution>>((acc, item) => {
+      if (!acc[item.theme]) {
+        acc[item.theme] = {
+          theme: item.theme,
+          questionCount: 0,
+        };
+      }
+      acc[item.theme].questionCount += item.questionCount;
+      return acc;
+    }, {})
+  );
+
+  return groupedByTheme;
+};
+
+export { calculateLevel, getMotivationPhrase, generateQuestionDistribution };
 export type { Question, LevelCalculationConfig, LevelCalculationResult };

@@ -4,32 +4,36 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Progress } from '@/components/ui/Progress';
 import { Button } from '@/components/ui/Button';
-import { Timer, Trophy, Lightbulb, Eye, Zap } from 'lucide-react';
+import { Timer, Lightbulb, Eye, Zap, Coins, Award } from 'lucide-react';
 import { LetterInput } from './LetterInput';
 import { Example } from '@/types';
 import JokerButton from './JokerButton';
 import { calculateLevel, getMotivationPhrase } from '@/lib/game';
+import { useSession } from 'next-auth/react';
 
 type GameStatus = 'loading' | 'playing' | 'finished';
 type QuestionStatus = 'playing' | 'success' | 'failed'
 
 const LanguageGame: React.FC = () => {
+  const { data: session } = useSession();
   const [examples, setExamples] = useState<Example[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
   const [currentQuestion, setCurrentQuestion] = useState<Example | null>(null);
   const [report, setReport] = useState<Record<string, { level: string, result: string }>>({})
   const [userAnswer, setUserAnswer] = useState<string>('');
 
+  const [level, setLevel] = useState<string>('');
   const [score, setScore] = useState<number>(0);
   const [streak, setStreak] = useState<number>(0);
   const [timeRemaining, setTimeRemaining] = useState<number>(60);
   const [gameStatus, setGameStatus] = useState<GameStatus>('playing');
-  const [feedback, setFeedback] = useState<string>('');
+  const [feedback, setFeedback] = useState<string[]>([]);
   const [progress, setProgress] = useState<number>(0);
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState<boolean>(false);
   const [questionStatus, setQuestionStatus] = useState<QuestionStatus>('playing');
   const [isTimerRunning, setIsTimerRunning] = useState<boolean>(true);
   const [isShaking, setIsShaking] = useState(false);
+
 
   const [jokers, setJokers] = useState({
     hint: 3,
@@ -41,8 +45,11 @@ const LanguageGame: React.FC = () => {
   useEffect(() => {
     const fetchGameExamples = async () => {
       try {
-        const response = await fetch(`/api/game`, {
-          method: 'POST',
+        const url = session?.user.level || level
+          ? `/api/game?level=${session?.user?.level || level}`
+          : `/api/game`
+        const response = await fetch(url, {
+          method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
@@ -71,11 +78,10 @@ const LanguageGame: React.FC = () => {
   }, []);
 
   const useHintJoker = () => {
-    return
     if (jokers.hint > 0 && currentQuestion) {
       // Reveal first few letters of the answer
-      const partialAnswer = currentQuestion.dutch.slice(0, Math.ceil(currentQuestion.dutch.length / 2));
-      setUserAnswer(partialAnswer);
+      // const partialAnswer = currentQuestion.dutch.slice(0, Math.ceil(currentQuestion.dutch.length / 2));
+      // setUserAnswer(partialAnswer);
 
       setJokers(prev => ({
         ...prev,
@@ -85,9 +91,8 @@ const LanguageGame: React.FC = () => {
   };
 
   const useRevealAnswerJoker = () => {
-    return
     if (jokers.revealAnswer > 0 && currentQuestion) {
-      setUserAnswer(currentQuestion.dutch);
+      // setUserAnswer(currentQuestion.dutch);
 
       setJokers(prev => ({
         ...prev,
@@ -95,7 +100,7 @@ const LanguageGame: React.FC = () => {
       }));
 
       // Automatically submit the answer
-      showAnswer();
+      // showAnswer();
     }
   };
 
@@ -137,12 +142,12 @@ const LanguageGame: React.FC = () => {
         setQuestionStatus("success");
         setScore((prev) => prev + 10 * (streak + 1));
         setStreak((prev) => prev + 1);
-        setFeedback('Correct! Great job! 🎉');
+        setFeedback(['Correct! Great job! 🎉']);
         setReport(prev => ({ ...prev, [currentQuestion._id!]: { level: currentQuestion.theme, result: "success" } }))
       } else {
         setQuestionStatus("failed");
         setStreak(0);
-        setFeedback(message ? `${message} The correct answer was: ${currentQuestion.dutch}` : `The correct answer was: ${currentQuestion.dutch}`);
+        setFeedback([message ? message : "", `The correct answer was: ${currentQuestion.dutch}`]);
         setReport(prev => ({ ...prev, [currentQuestion._id!]: { level: currentQuestion.theme, result: "failed" } }))
       }
 
@@ -160,20 +165,44 @@ const LanguageGame: React.FC = () => {
 
         // Reset states for new question
         setUserAnswer('');
-        setFeedback('');
+        setFeedback([]);
         setQuestionStatus("playing");
         setIsAnswerSubmitted(false);
         setTimeRemaining(60); // Reset timer
         setIsTimerRunning(true);
       } else {
         // All questions answered
-        console.log(report)
         const result = calculateLevel(Object.values(report).map(({ level, result }) => ({ themeLevel: Number(level), isCorrect: result === "success" })))
-        console.log(result)
+        setLevel(`${result}`)
+        console.log("level: ", result)
+        updatePlayer(result)
         setGameStatus('finished');
       }
     }
   }, [currentQuestion, currentQuestionIndex, examples, isAnswerSubmitted, report, streak, userAnswer]);
+
+
+  const updatePlayer = async (level: number) => {
+
+    try {
+      const response = await fetch('/api/game', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ level }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update player');
+      }
+      setLevel(`${level}`)
+      const result = await response.json();
+      console.log('Player updated successfully:', result);
+    } catch (error) {
+      console.error('Error updating player:', error);
+    }
+  }
 
   // Timer effect
   useEffect(() => {
@@ -186,9 +215,13 @@ const LanguageGame: React.FC = () => {
 
       return () => clearInterval(timer);
     } else {
-      showAnswer("Time's up! ⏰ </br>")
+      showAnswer("Time's up! ⏰")
     }
   }, [timeRemaining, gameStatus, isTimerRunning, showAnswer]);
+
+  useEffect(() => {
+    setLevel(session?.user?.level || '')
+  }, [session])
 
   // Loading state
   if (gameStatus === 'loading') {
@@ -209,6 +242,7 @@ const LanguageGame: React.FC = () => {
           </h3>
           <p>Final Score: {score}</p>
           <p>{getMotivationPhrase(Object.values(report).map(({ result }) => (result === "success")).filter(r => r).length)}</p>
+          <p>Your level is {level}</p>
           <Button
             onClick={() => {
               // Reset everything
@@ -268,14 +302,20 @@ const LanguageGame: React.FC = () => {
       </div>
 
 
+      {/* Level, Score and Time display */}
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-2">
-          <Trophy className="w-5 h-5 text-yellow-500" />
+          <span className="text-lg font-bold">Level:</span>
+          <span className="text-lg font-bold">{level}</span>
+          <Award className="w-5 h-5 text-yellow-500" />
+        </div>
+        <div className="flex items-center space-x-2">
+          <Coins className="w-5 h-5 text-yellow-500" />
           <span className="font-bold">{score}</span>
         </div>
         <div className="flex items-center space-x-2">
-          <Timer className="w-5 h-5 text-blue-500" />
           <span className="font-medium">{timeRemaining}s</span>
+          <Timer className="w-5 h-5 text-blue-500" />
         </div>
       </div>
 
@@ -297,13 +337,16 @@ const LanguageGame: React.FC = () => {
             onEnter={showAnswer}
           />
 
-          {feedback && (
-            <div
-              className={`text-center p-2 rounded ${feedback.startsWith('Correct') ? 'text-green-600' : 'text-red-600'
-                }`}
-            >
-              {feedback}
-            </div>
+          {feedback && feedback.length > 0 && (
+            feedback.map(fb => (
+              <div
+                className={`text-center px-2 rounded ${feedback.some(fb => fb.startsWith('Correct')) ? 'text-green-600' : 'text-red-600'
+                  }`}
+              >
+                {fb}
+              </div>
+            ))
+
           )}
 
           <Button
