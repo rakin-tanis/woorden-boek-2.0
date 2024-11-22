@@ -67,11 +67,6 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Account is not active");
         }
 
-        const playerCollection = client
-          .db("woorden-boek")
-          .collection("players");
-        const player = await playerCollection.findOne({ userId: user._id });
-
         const lastLoginAt = new Date();
         await usersCollection.updateOne(
           { _id: new ObjectId(user._id) },
@@ -89,7 +84,6 @@ export const authOptions: NextAuthOptions = {
           createdAt: user.createdAt,
           lastLoginAt: lastLoginAt,
           provider: "google",
-          level: player?.level,
         };
       },
     }),
@@ -98,7 +92,7 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account }) {
       if (account?.provider === "google") {
         const client = await clientPromise;
         const usersCollection = client.db("woorden-boek").collection("users");
@@ -127,28 +121,19 @@ export const authOptions: NextAuthOptions = {
     },
     async jwt({ token, user }) {
       if (user) {
-        // const client = await clientPromise;
-        // const playerCollection = client
-        //   .db("woorden-boek")
-        //   .collection("players");
-        // const player = await playerCollection.findOne({
-        //   userId: user.id,
-        // });
         token.role = user.role;
         token.id = user.id;
         token.status = user.status;
         token.isEmailVerified = user.isEmailVerified;
-        // token.level = player?.level;
       }
       return token;
     },
-    async session({ session, token, user }) {
+    async session({ session, token }) {
       if (session.user) {
         session.user.role = token.role as string;
         session.user.id = token.id as string;
         session.user.status = token.status as string;
         session.user.isEmailVerified = token.isEmailVerified as boolean;
-        // session.user.level = token.level as string;
       }
       return session;
     },

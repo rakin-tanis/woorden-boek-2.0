@@ -146,7 +146,7 @@ const LanguageGame: React.FC = () => {
     console.log("updatePlayer: ", newLevel)
     try {
       await fetch('/api/player', {
-        method: 'PUSH',
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },

@@ -30,7 +30,7 @@ export async function GET() {
   }
 }
 
-export async function PUSH(req: NextRequest) {
+export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
     console.log("POST api/game", body);

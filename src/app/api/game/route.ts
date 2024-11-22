@@ -1,9 +1,8 @@
 import clientPromise from "@/lib/mongodb";
-import { Example, Player, ThemeDistribution } from "@/types";
+import { Example, ThemeDistribution } from "@/types";
 import { NextRequest, NextResponse } from "next/server";
 import { generateQuestionDistribution } from "@/lib/game";
 import { getServerSession } from "@/lib/auth";
-import { ObjectId } from "mongodb";
 
 const firstGameDistribution = [
   {
