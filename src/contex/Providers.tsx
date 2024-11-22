@@ -1,17 +1,22 @@
 "use client"
 
-import { ToastProvider } from '@/components/ui/UseToast'
 import { SessionProvider } from 'next-auth/react'
+import { ThemeProvider } from 'next-themes'
 import React, { ReactNode } from 'react'
 
 const Providers = ({ children }: { children: ReactNode }) => {
   return (
     <div>
-      <SessionProvider>
-        <ToastProvider>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange
+      >
+        <SessionProvider>
           {children}
-        </ToastProvider>
-      </SessionProvider>
+        </SessionProvider>
+      </ThemeProvider>
     </div>
   )
 }

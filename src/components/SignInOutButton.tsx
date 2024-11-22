@@ -9,7 +9,7 @@ import {
   User as UserIcon,
   Settings,
   Moon,
-  Sun
+  Sun,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -50,10 +50,6 @@ const SignInOutButton = () => {
     }
   };
 
-  const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
-  };
-
   if (!session) {
     return (
       <Button
@@ -85,7 +81,7 @@ const SignInOutButton = () => {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="p-4 bg-white dark:bg-gray-800">
+      <DropdownMenuContent align="end" className="p-4 bg-white dark:bg-gray-900 text-black dark:text-white">
         <DropdownMenuLabel>
           <div className="flex items-center space-x-2">
             {session.user?.image && (
@@ -105,8 +101,8 @@ const SignInOutButton = () => {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          onClick={toggleTheme}
-          className="cursor-pointer"
+          onClick={() => setTheme(theme => theme === 'light' ? 'dark' : 'light')}
+          className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
         >
           {theme === 'dark' ? (
             <Sun className="mr-2 h-4 w-4" />
@@ -114,12 +110,14 @@ const SignInOutButton = () => {
             <Moon className="mr-2 h-4 w-4" />
           )}
           <span>
-            {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+            {theme === 'dark' ? 'Light Mode' :
+              theme === 'system' ? 'System Mode' :
+                'Dark Mode'}
           </span>
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => {/* Navigate to profile/settings */ }}
-          className="cursor-pointer"
+          className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
         >
           <Settings className="mr-2 h-4 w-4" />
           Settings
@@ -127,7 +125,7 @@ const SignInOutButton = () => {
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={handleSignOut}
-          className="cursor-pointer text-destructive focus:text-destructive"
+          className="cursor-pointer text-destructive focus:text-destructive hover:bg-gray-50 dark:hover:bg-gray-700"
         >
           {isLoading ? (
             <Spinner />
