@@ -24,6 +24,10 @@ const buttonVariants = {
   yellow: {
     enabled: "text-white bg-yellow-500 border-0 hover:text-yellow-400 hover:bg-yellow-200 hover:border-0",
     disabled: "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
+  },
+  lime: {
+    enabled: "text-white bg-lime-600 border-0 hover:text-lime-400 hover:bg-lime-200 hover:border-0",
+    disabled: "bg-lime-300 text-white cursor-not-allowed opacity-50"
   }
 }
 
@@ -215,11 +219,12 @@ const JokerButton: React.FC<JokerButtonProps> = ({
   const [clientStyles, setClientStyles] = useState<string | null>(null);
 
   // Color mapping for different variants
-  const variantColors = {
+  /* const variantColors = {
     blue: '0, 100, 255',      // blue-600
     purple: '124, 58, 237',   // purple-600
-    yellow: '234, 179, 8'     // yellow-500
-  }
+    yellow: '234, 179, 8',     // yellow-500
+    lime: '132, 204, 22',      // lime-500
+  } */
 
   useEffect(() => {
     if (animationVariant === 'glow-press') {
@@ -229,7 +234,7 @@ const JokerButton: React.FC<JokerButtonProps> = ({
       setClientStyles(getBubbleStyles());
     }
     else if (animationVariant === 'bubbly') {
-      setClientStyles(getBubblyButtonStyles(variantColors[variant]));
+      setClientStyles(getBubblyButtonStyles('234, 179, 8'/* variantColors[variant] */));
     }
   }, [animationVariant, variant]);
 

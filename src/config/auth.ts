@@ -140,7 +140,7 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.status = user.status;
         token.isEmailVerified = user.isEmailVerified;
-        token.level = user.level || "1";
+        token.level = user.level;
       }
       return token;
     },

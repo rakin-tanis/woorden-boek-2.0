@@ -4,15 +4,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Progress } from '@/components/ui/Progress';
 import { Button } from '@/components/ui/Button';
-import { Timer, Lightbulb, Eye, Zap, Coins, Award } from 'lucide-react';
+import { Timer, Eye, Zap, Coins, Award, Shield } from 'lucide-react';
 import { LetterInput } from './LetterInput';
 import { Example } from '@/types';
 import JokerButton from './JokerButton';
 import { calculateLevel, getMotivationPhrase } from '@/lib/game';
 import { useSession } from 'next-auth/react';
-
-type GameStatus = 'loading' | 'playing' | 'finished';
-type QuestionStatus = 'playing' | 'success' | 'failed'
 
 interface GameState {
   examples: Example[],
@@ -115,8 +112,9 @@ const LanguageGame: React.FC = () => {
 
   // Main game logic methods
   const updatePlayer = useCallback(async (newLevel: string) => {
+    console.log("updatePlayer: ", newLevel)
     try {
-      const response = await fetch('/api/game', {
+      await fetch('/api/game', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -124,25 +122,10 @@ const LanguageGame: React.FC = () => {
         body: JSON.stringify({ level: newLevel }),
       });
 
-      if (response.ok) {
-        // Update session
-        await updateSession({
-          user: {
-            ...session?.user,
-            level: newLevel,
-          },
-        });
-
-        // Update local state
-        setGameState(prev => ({
-          ...prev,
-          level: newLevel,
-        }));
-      }
     } catch (error) {
       console.error('Error updating player level:', error);
     }
-  }, [session, updateSession]);
+  }, []);
 
   const useHintJoker = () => {
     if (jokers.hint > 0 && gameState.currentQuestion) {
@@ -171,6 +154,14 @@ const LanguageGame: React.FC = () => {
     }
   };
 
+  const isAnswerCorrect = (userAnswer: string, correctAnswer: string) => {
+    const cleanedInput = userAnswer.toLowerCase().trim();
+    const cleanedCorrect = correctAnswer.toLowerCase().trim();
+    console.log(cleanedInput, cleanedCorrect)
+
+    return cleanedInput === cleanedCorrect;
+  };
+
   const checkAnswer = () => {
     if (!gameState.currentQuestion) return;
 
@@ -196,109 +187,89 @@ const LanguageGame: React.FC = () => {
   }
 
   const showAnswer = useCallback((message?: string) => {
-    if (!gameState.currentQuestion) return;
+    setGameState(prevState => {
+      if (!gameState.currentQuestion) return prevState;
 
-    // If answer hasn't been submitted yet, check the answer
-    if (!gameState.isAnswerSubmitted) {
-      const cleanedInputAnswer = gameState.userAnswer.toLowerCase().trim();
-      const cleanedCorrectAnswer = gameState.currentQuestion.dutch.toLowerCase().trim();
+      if (!prevState.isAnswerSubmitted) {
+        const isCorrect = isAnswerCorrect(gameState.userAnswer, gameState.currentQuestion.dutch);
+        if (isCorrect) {
+          return {
+            ...prevState,
+            questionStatus: "success",
+            score: (prevState.score + 10) * (prevState.streak + 1),
+            streak: prevState.streak + 1,
+            report: {
+              ...prevState.report,
+              [gameState.currentQuestion!._id!]: {
+                level: gameState.currentQuestion!.theme, result: "success"
 
-      const isCorrect = cleanedInputAnswer === cleanedCorrectAnswer;
-      console.log(gameState.currentQuestion.level, isCorrect, gameState.userAnswer, gameState.currentQuestion.dutch)
-      if (isCorrect) {
-        setGameState(prev => ({
-          ...prev,
-          questionStatus: "success",
-          score: (prev.score + 10) * (prev.streak + 1),
-          streak: prev.streak + 1,
-          report: {
-            ...prev.report,
-            [gameState.currentQuestion!._id!]: {
-              level: gameState.currentQuestion!.theme, result: "success"
+              }
+            },
+            feedback: ['Correct! Great job! 🎉'],
+            progress: Math.min(prevState.progress + 10, 100),
+            isAnswerSubmitted: true,
+            isTimerRunning: false,
+          }
+        } else {
+          return {
+            ...prevState,
+            questionStatus: "failed",
+            streak: 0,
+            report: {
+              ...prevState.report,
+              [gameState.currentQuestion!._id!]: {
+                level: gameState.currentQuestion!.theme, result: "failed"
 
-            }
-          },
-          feedback: ['Correct! Great job! 🎉'],
-          progress: Math.min(prev.progress + 10, 100),
-          isAnswerSubmitted: true,
-          isTimerRunning: false,
-        }))
+              }
+            },
+            feedback: [
+              message ? message : "Incorrect",
+              "The correct answer was:",
+              `${gameState.currentQuestion!.dutch}`],
+            progress: Math.min(prevState.progress + 10, 100),
+            isAnswerSubmitted: true,
+            isTimerRunning: false,
+          }
+        }
       } else {
-        setGameState(prev => ({
-          ...prev,
-          questionStatus: "failed",
-          streak: 0,
-          report: {
-            ...prev.report,
-            [gameState.currentQuestion!._id!]: {
-              level: gameState.currentQuestion!.theme, result: "failed"
+        const nextIndex = gameState.currentQuestionIndex + 1;
+        if (nextIndex < gameState.examples.length) {
+          return {
+            ...prevState,
+            questionStatus: 'playing',
+            currentQuestionIndex: nextIndex,
+            currentQuestion: gameState.examples[nextIndex],
+            userAnswer: '',
+            timeRemaining: 60,
+            feedback: [],
+            isAnswerSubmitted: false,
+            isTimerRunning: true,
+          };
 
-            }
-          },
-          feedback: [
-            message ? message : "Incorrect",
-            "The correct answer was:",
-            `${gameState.currentQuestion!.dutch}`],
-          progress: Math.min(prev.progress + 10, 100),
-          isAnswerSubmitted: true,
-          isTimerRunning: false,
-        }))
+          // Reset states for new question
+        } else {
+          // All questions answered
+          const result = calculateLevel(Object.values(gameState.report).map(({ level, result }) => ({ themeLevel: Number(level), isCorrect: result === "success" })))
+          console.log("level: ", result)
+          updatePlayer(`${result}`);
+          // Update session
+          updateSession({
+            user: {
+              ...session?.user,
+              level: `${result}`,
+            },
+          }).then();
+          return {
+            ...prevState,
+            level: `${result}`,
+            gameStatus: 'finished'
+          }
+        }
       }
-    }
-    // If answer has been submitted, move to next question
-    else {
-      // Move to next question
-      const nextIndex = gameState.currentQuestionIndex + 1;
-      if (nextIndex < gameState.examples.length) {
-        setGameState(state => ({
-          ...state,
-          questionStatus: 'playing',
-          currentQuestionIndex: nextIndex,
-          currentQuestion: gameState.examples[nextIndex],
-          userAnswer: '',
-          timeRemaining: 60,
-          feedback: [],
-          isAnswerSubmitted: false,
-          isTimerRunning: true,
-        }));
-
-        // Reset states for new question
-      } else {
-        // All questions answered
-        const result = calculateLevel(Object.values(gameState.report).map(({ level, result }) => ({ themeLevel: Number(level), isCorrect: result === "success" })))
-        setGameState(state => ({
-          ...state,
-          level: `${result}`,
-          gameStatus: 'finished'
-        }))
-        console.log("level: ", result)
-        updatePlayer(`${result}`)
-      }
-    }
+    })
   }, [gameState.currentQuestion, gameState.currentQuestionIndex, gameState.examples, gameState.isAnswerSubmitted, gameState.report, gameState.streak, gameState.userAnswer]);
 
 
-  /* const updatePlayer = async (level: number) => {
-
-    try {
-      const response = await fetch('/api/game', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ level }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update player');
-      }
-      setGameState(state => ({ ...state, level: `${result}` }))
-      const result = await response.json();
-      console.log('Player updated successfully:', result);
-    } catch (error) {
-      console.error('Error updating player:', error);
-    }
-  } */
 
   // Timer effect
   useEffect(() => {
@@ -363,10 +334,10 @@ const LanguageGame: React.FC = () => {
           onClick={useHintJoker}
           count={jokers.hint}
           disabled={gameState.isAnswerSubmitted}
-          variant={'blue'}
+          variant={'yellow'}
           animationVariant="bubbly"
         >
-          <Lightbulb className="w-5 h-5" />
+          <Zap className="w-5 h-5" />
         </JokerButton>
 
         {/* Reveal Answer Joker */}
@@ -384,10 +355,10 @@ const LanguageGame: React.FC = () => {
         <JokerButton
           onClick={checkAnswer}
           disabled={gameState.isAnswerSubmitted}
-          variant={'yellow'}
+          variant={'lime'}
           animationVariant="bubbly"
         >
-          <Zap className="w-5 h-5" />
+          <Shield className="w-5 h-5" />
         </JokerButton>
       </div>
 
@@ -428,8 +399,9 @@ const LanguageGame: React.FC = () => {
           />
 
           {gameState.feedback && gameState.feedback.length > 0 && (
-            gameState.feedback.map(fb => (
+            gameState.feedback.map((fb, index) => (
               <div
+                key={index}
                 className={`text-center px-2 rounded 
                   ${gameState.feedback.some(fb => fb.startsWith('Correct'))
                     ? 'text-green-600'

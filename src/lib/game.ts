@@ -234,6 +234,7 @@ const generateQuestionDistribution = (
       return acc;
     }, {})
   );
+  console.log(groupedByTheme);
 
   return groupedByTheme;
 };

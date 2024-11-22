@@ -1,13 +1,16 @@
-import WelcomePage from "@/components/WelcomePage";
+import LanguageGame from '@/components/LanguageGame'
+import React from 'react'
 
-export default function Home() {
+const page = () => {
   return (
     <div className="h-lvh font-[family-name:var(--font-geist-sans)]">
       <main>
         <div className="flex flex-col items-center justify-center h-lvh text-sm text-center font-[family-name:var(--font-geist-mono)]">
-          <WelcomePage></WelcomePage>
+          <LanguageGame></LanguageGame>
         </div>
       </main>
     </div>
-  );
+  )
 }
+
+export default page

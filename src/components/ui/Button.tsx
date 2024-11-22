@@ -20,6 +20,10 @@ const buttonVariants = {
   destructive: {
     enabled: "bg-red-500 text-white hover:bg-red-600",
     disabled: "bg-red-300 text-white cursor-not-allowed opacity-50"
+  },
+  ghost: {
+    enabled: "bg-transparent text-gray-700 hover:bg-gray-100 hover:text-gray-900",
+    disabled: "bg-transparent text-gray-400 cursor-not-allowed opacity-50"
   }
 }
 

@@ -39,15 +39,12 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const level = parseInt(searchParams.get("level") || "");
-    console.log("GET api/game");
-    console.log(level);
-    let gameExamples: Example[];
-    if (level) {
-      // Experienced user:
-      gameExamples = await getGameExamples(generateQuestionDistribution(level));
-    } else {
-      gameExamples = await getGameExamples(firstGameDistribution);
-    }
+    console.log("GET api/game", level);
+
+    const gameExamples = await getGameExamples(
+      level ? generateQuestionDistribution(level) : firstGameDistribution
+    );
+
     // Shuffle the examples to randomize order
     gameExamples.sort(() => 0.5 - Math.random());
     // Return only necessary information
@@ -106,6 +103,7 @@ const getGameExamples = async (distribution: ThemeDistribution[]) => {
   ];
 
   if (uniqueExamples.length < 10) {
+    console.log(uniqueExamples)
     throw new Error(
       `Not enough unique themes. Found only ${uniqueExamples.length} themes.`
     );
@@ -114,10 +112,10 @@ const getGameExamples = async (distribution: ThemeDistribution[]) => {
   return uniqueExamples;
 };
 
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    console.log("POST api/game", body);
     const session = await getServerSession();
 
     if (!session?.user)
@@ -133,14 +131,14 @@ export async function POST(req: NextRequest) {
     };
 
     const result = await playersCollection.updateOne(
-      { userId: player.userId }, 
+      { userId: player.userId },
       {
         $set: {
           userId: session.user.id,
           name: player.name,
           level: player.level,
         },
-      }, 
+      },
       { upsert: true }
     );
 
