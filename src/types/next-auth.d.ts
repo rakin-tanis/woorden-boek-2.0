@@ -24,4 +24,14 @@ declare module "next-auth" {
     isEmailVerified: boolean;
     level?: string;
   }
+  interface Profile {
+    id?: string;
+    email?: string;
+    role?: string;
+    image?: string;
+    name?: string;
+    status?: string;
+    isEmailVerified: boolean;
+    level?: string;
+  }
 }

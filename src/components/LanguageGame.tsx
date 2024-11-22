@@ -31,7 +31,7 @@ interface GameState {
 }
 
 const LanguageGame: React.FC = () => {
-  const { data: session, update: updateSession } = useSession();
+  const { data: session, update: updateSession, status: sessionStatus } = useSession();
   // Consolidate state management
   const [gameState, setGameState] = useState<GameState>({
     examples: [],
@@ -62,6 +62,10 @@ const LanguageGame: React.FC = () => {
   // Fetch game examples
   const fetchGameExamples = useCallback(async () => {
     try {
+
+      // Only fetch if session is loaded
+      if (sessionStatus === 'loading') return;
+
       const url = gameState.level
         ? `/api/game?level=${gameState.level}`
         : `/api/game`
@@ -92,30 +96,57 @@ const LanguageGame: React.FC = () => {
       console.error('Error fetching game examples:', error);
       setGameState(state => ({ ...state, gameStatus: 'finished' }));
     }
-  }, [gameState.level])
+  }, [gameState.level, session, sessionStatus])
 
+  // Fetch player details function
+  const fetchPlayerDetails = useCallback(async () => {
+    try {
+      // Only fetch if session is authenticated
+      if (sessionStatus !== 'authenticated') return;
+
+      const response = await fetch('/api/player', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch player details');
+      }
+
+      const data = await response.json();
+      // Update game state with player level
+      setGameState(prevState => ({
+        ...prevState,
+        level: data.player.level
+      }));
+    } catch (error) {
+      console.error('Error fetching player details:', error);
+    }
+  }, [sessionStatus, session, updateSession]);
 
   // Initial fetch effect
   useEffect(() => {
-    fetchGameExamples();
-  }, [fetchGameExamples]);
-
-  // Update level from session
-  useEffect(() => {
-    if (session?.user?.level) {
-      setGameState(prev => ({
-        ...prev,
-        level: session.user.level || '',
-      }));
+    // Only fetch when session is not loading
+    if (sessionStatus != 'loading') {
+      fetchGameExamples();
     }
-  }, [session]);
+  }, [sessionStatus, fetchGameExamples]);
+
+
+  useEffect(() => {
+    if (sessionStatus === 'authenticated') {
+      fetchPlayerDetails();
+    }
+  }, [sessionStatus, fetchPlayerDetails]);
 
   // Main game logic methods
   const updatePlayer = useCallback(async (newLevel: string) => {
     console.log("updatePlayer: ", newLevel)
     try {
-      await fetch('/api/game', {
-        method: 'POST',
+      await fetch('/api/player', {
+        method: 'PUSH',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -251,14 +282,7 @@ const LanguageGame: React.FC = () => {
           // All questions answered
           const result = calculateLevel(Object.values(gameState.report).map(({ level, result }) => ({ themeLevel: Number(level), isCorrect: result === "success" })))
           console.log("level: ", result)
-          updatePlayer(`${result}`);
-          // Update session
-          updateSession({
-            user: {
-              ...session?.user,
-              level: `${result}`,
-            },
-          }).then();
+
           return {
             ...prevState,
             level: `${result}`,
@@ -267,6 +291,13 @@ const LanguageGame: React.FC = () => {
         }
       }
     })
+
+    // Move session update outside of setGameState
+    if (gameState.currentQuestionIndex === gameState.examples.length) {
+      const result = calculateLevel(Object.values(gameState.report).map(({ level, result }) => ({ themeLevel: Number(level), isCorrect: result === "success" })))
+
+      updatePlayer(`${result}`);
+    }
   }, [gameState.currentQuestion, gameState.currentQuestionIndex, gameState.examples, gameState.isAnswerSubmitted, gameState.report, gameState.streak, gameState.userAnswer]);
 
 
@@ -437,6 +468,11 @@ const LanguageGame: React.FC = () => {
         return renderGamePlay();
     }
   };
+
+  // Conditional rendering for loading session
+  if (sessionStatus === 'loading') {
+    return renderLoadingState();
+  }
 
   return (
     <div>

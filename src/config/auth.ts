@@ -24,7 +24,6 @@ export const authOptions: NextAuthOptions = {
           createdAt: new Date(),
           lastLoginAt: new Date(),
           provider: "google",
-          level: profile.level,
         };
       },
       authorization: {
@@ -99,7 +98,7 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   callbacks: {
-    async signIn({ user, account }) {
+    async signIn({ user, account, profile }) {
       if (account?.provider === "google") {
         const client = await clientPromise;
         const usersCollection = client.db("woorden-boek").collection("users");
@@ -113,13 +112,6 @@ export const authOptions: NextAuthOptions = {
           user.status = "ACTIVE";
           user.isEmailVerified = true;
         } else {
-          const playerCollection = client
-            .db("woorden-boek")
-            .collection("players");
-          const player = await playerCollection.findOne({
-            userId: existingUser._id,
-          });
-
           const lastLoginAt = new Date();
           await usersCollection.updateOne(
             { _id: new ObjectId(existingUser._id) },
@@ -129,28 +121,34 @@ export const authOptions: NextAuthOptions = {
           user.role = existingUser.role;
           user.status = existingUser.status;
           user.isEmailVerified = existingUser.isEmailVerified;
-          user.level = player?.level;
         }
       }
       return true;
     },
     async jwt({ token, user }) {
       if (user) {
+        // const client = await clientPromise;
+        // const playerCollection = client
+        //   .db("woorden-boek")
+        //   .collection("players");
+        // const player = await playerCollection.findOne({
+        //   userId: user.id,
+        // });
         token.role = user.role;
         token.id = user.id;
         token.status = user.status;
         token.isEmailVerified = user.isEmailVerified;
-        token.level = user.level;
+        // token.level = player?.level;
       }
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token, user }) {
       if (session.user) {
         session.user.role = token.role as string;
         session.user.id = token.id as string;
         session.user.status = token.status as string;
         session.user.isEmailVerified = token.isEmailVerified as boolean;
-        session.user.level = token.level as string;
+        // session.user.level = token.level as string;
       }
       return session;
     },

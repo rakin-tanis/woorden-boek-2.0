@@ -3,6 +3,7 @@ import { Example, Player, ThemeDistribution } from "@/types";
 import { NextRequest, NextResponse } from "next/server";
 import { generateQuestionDistribution } from "@/lib/game";
 import { getServerSession } from "@/lib/auth";
+import { ObjectId } from "mongodb";
 
 const firstGameDistribution = [
   {
@@ -38,11 +39,26 @@ const firstGameDistribution = [
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const level = parseInt(searchParams.get("level") || "");
-    console.log("GET api/game", level);
+
+    const session = await getServerSession();
+    const client = await clientPromise;
+    const collection = client.db("woorden-boek").collection("players");
+
+    let player;
+    try {
+      player = await collection.findOne({
+        userId: `${session?.user.id}`,
+      });
+    } catch (error) {
+      console.error("Error fetching user:", error);
+    }
+    const level =
+      player?.level || parseInt(searchParams.get("level") || "") || "";
 
     const gameExamples = await getGameExamples(
-      level ? generateQuestionDistribution(level) : firstGameDistribution
+      level
+        ? generateQuestionDistribution(Number(level))
+        : firstGameDistribution
     );
 
     // Shuffle the examples to randomize order
@@ -103,7 +119,7 @@ const getGameExamples = async (distribution: ThemeDistribution[]) => {
   ];
 
   if (uniqueExamples.length < 10) {
-    console.log(uniqueExamples)
+    console.log(uniqueExamples);
     throw new Error(
       `Not enough unique themes. Found only ${uniqueExamples.length} themes.`
     );
@@ -112,51 +128,4 @@ const getGameExamples = async (distribution: ThemeDistribution[]) => {
   return uniqueExamples;
 };
 
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json();
-    console.log("POST api/game", body);
-    const session = await getServerSession();
 
-    if (!session?.user)
-      return NextResponse.json({ message: "unauthorized" }, { status: 401 });
-
-    const client = await clientPromise;
-    const playersCollection = client.db("woorden-boek").collection("players");
-
-    const player: Player = {
-      userId: session.user.id!,
-      name: session.user.name!,
-      level: body.level,
-    };
-
-    const result = await playersCollection.updateOne(
-      { userId: player.userId },
-      {
-        $set: {
-          userId: session.user.id,
-          name: player.name,
-          level: player.level,
-        },
-      },
-      { upsert: true }
-    );
-
-    session.user.level = body.level;
-
-    return NextResponse.json(
-      {
-        message: "Player updated successfully",
-        updatedCount: result.modifiedCount,
-        upsertedCount: result.upsertedCount,
-      },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error("Error updating player:", error);
-    return NextResponse.json(
-      { message: `Internal server error: ${error}` },
-      { status: 500 }
-    );
-  }
-}
