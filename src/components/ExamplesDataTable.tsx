@@ -192,9 +192,9 @@ const ExamplesDataTable: React.FC<ExamplesTableProps> = ({
         <div className="text-center py-4">Loading...</div>
       ) : (
         <div className="border rounded-lg">
-          <Table>
+          <Table className='rounded-xl bg-gray-50 dark:bg-gray-900'>
             <TableHeader>
-              <TableRow>
+              <TableRow className='hover:dark:bg-transparent hover:bg-transparent'>
                 <TableHead>Dutch</TableHead>
                 <TableHead>Turkish</TableHead>
                 <TableHead>Words</TableHead>
@@ -208,7 +208,10 @@ const ExamplesDataTable: React.FC<ExamplesTableProps> = ({
             </TableHeader>
             <TableBody>
               {data.map((item, index) => (
-                <TableRow key={item._id} className={`${index % 2 === 0 ? "dark:bg-gray-800 bg-gray-200" : "dark:bg-gray-950 bg-white"}`}>
+                <TableRow key={item._id} className={`text-gray-950 dark:text-white 
+                ${index % 2 === 0 
+                ? "hover:dark:bg-gray-600 hover:bg-gray-200 dark:bg-gray-700 bg-gray-100" 
+                : "hover:dark:bg-gray-600 hover:bg-gray-200 dark:bg-gray-900 bg-white"}`}>
                   <TableCell>
                     <HighlightText targetText={item.dutch} searchText={searchText} />
                   </TableCell>

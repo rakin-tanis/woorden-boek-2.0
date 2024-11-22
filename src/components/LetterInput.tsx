@@ -158,7 +158,7 @@ export const LetterInput: React.FC<LetterInputProps> = ({
                   ? `text-black animate-turnAround`
                   : questionStatus === 'failed' && userAnswer[letterIndexCopy] !== expectedAnswer[letterIndexCopy].toLowerCase()
                     ? 'bg-red-500 animate-shake'
-                    : ''}
+                    : 'text-gray-950 dark:text-white'}
                 text-xl font-medium uppercase`}
             >
               {userAnswer[index]}

@@ -80,11 +80,11 @@ export function MultiSelect({
           </div>
         </div>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0 bg-background" align="start">
+      <PopoverContent className="w-[200px] p-0 bg-white dark:bg-gray-900 text-black dark:text-white" align="start">
         <Command>
           <CommandInput placeholder={searchPlaceholder} />
           <CommandEmpty>{emptyMessage}</CommandEmpty>
-          <CommandGroup className="max-h-64 overflow-auto">
+          <CommandGroup className="max-h-64 overflow-auto text-black dark:text-white">
             {options.map((option) => (
               <CommandItem
                 key={option.value}
@@ -97,9 +97,10 @@ export function MultiSelect({
                 }}
               >
                 <div
-                  className={`mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary ${selected.includes(option.value)
-                    ? "bg-primary text-primary-foreground"
-                    : "opacity-50 [&_svg]:invisible"
+                  className={`mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-800 dark:border-gray-100
+                    ${selected.includes(option.value)
+                      ? "bg-primary text-primary-foreground"
+                      : "opacity-50 [&_svg]:invisible"
                     }`}
                 >
                   <X className="h-3 w-3" />

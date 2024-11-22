@@ -156,7 +156,7 @@ export default function UserPanel() {
   return (
     <div className="space-y-4 p-4">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Users</h1>
+        <h1 className="text-2xl font-bold dark:text-white">Users</h1>
         <Input
           type="search"
           placeholder="Search users..."
@@ -170,10 +170,10 @@ export default function UserPanel() {
         <div className="text-center py-4">Loading...</div>
       ) : (
         <>
-          <div>
-            <Table>
+          <div className="border rounded-lg">
+            <Table className='rounded-xl bg-gray-50 dark:bg-gray-900'>
               <TableHeader>
-                <TableRow>
+                <TableRow className='hover:dark:bg-transparent hover:bg-transparent'>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
@@ -188,7 +188,10 @@ export default function UserPanel() {
               </TableHeader>
               <TableBody>
                 {users.map((user, index) => (
-                  <TableRow key={user._id} className={`${index % 2 === 0 ? "dark:bg-gray-800 bg-gray-200" : "dark:bg-gray-950 bg-white"}`}>
+                  <TableRow key={user._id} className={`text-gray-950 dark:text-white 
+                  ${index % 2 === 0
+                      ? "hover:dark:bg-gray-600 hover:bg-gray-200 dark:bg-gray-700 bg-gray-100"
+                      : "hover:dark:bg-gray-600 hover:bg-gray-200 dark:bg-gray-900 bg-white"}`}>
                     {/* <TableCell>
                     {user.image ? <Image src={user.image} alt='user image' width={40} height={40} className='w-10' /> : <CircleUser />}
                   </TableCell> */}
@@ -235,12 +238,13 @@ export default function UserPanel() {
                 )}
               </TableBody>
             </Table>
-            <Pagination
-              total={total}
-              page={page}
-              itemsPerPage={itemsPerPage}
-              onPageChange={handlePageChange} />
           </div>
+          <Pagination
+            total={total}
+            page={page}
+            itemsPerPage={itemsPerPage}
+            onPageChange={handlePageChange} />
+
 
           {/* Edit Modal */}
           <Modal

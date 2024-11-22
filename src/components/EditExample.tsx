@@ -134,7 +134,7 @@ const EditExample: React.FC<EditExampleProps> = ({
               value={dutch}
               onChange={(e) => setDutch(e.target.value)}
               rows={3}
-              className={`dark:text-black w-full p-2 border ${errors.dutch ? 'border-red-500' : 'border-gray-300'}`}
+              className={`dark:text-white w-full p-2 border ${errors.dutch ? 'border-red-500' : 'border-gray-300'}`}
               disabled={isSubmitting}
             />
             {errors.dutch && (
@@ -151,7 +151,7 @@ const EditExample: React.FC<EditExampleProps> = ({
               value={turkish}
               onChange={(e) => setTurkish(e.target.value)}
               rows={3}
-              className={`dark:text-black w-full p-2 border ${errors.turkish ? 'border-red-500' : 'border-gray-300'}`}
+              className={`dark:text-white w-full p-2 border ${errors.turkish ? 'border-red-500' : 'border-gray-300'}`}
               disabled={isSubmitting}
             />
             {errors.turkish && (
@@ -168,7 +168,7 @@ const EditExample: React.FC<EditExampleProps> = ({
               name="words"
               value={words}
               onChange={(e) => setWords(e.target.value)}
-              className={`dark:text-black w-full p-2 border ${errors.words ? 'border-red-500' : 'border-gray-300'}`}
+              className={`dark:text-white w-full p-2 border ${errors.words ? 'border-red-500' : 'border-gray-300'}`}
               disabled={isSubmitting}
             />
             {errors.words && (
@@ -184,7 +184,7 @@ const EditExample: React.FC<EditExampleProps> = ({
               name="source"
               value={source}
               onChange={(e) => setSource(e.target.value)}
-              className={`dark:text-black w-full p-2 border border-gray-300 ${errors.source ? 'border-red-500' : 'border-gray-300'}`}
+              className={`dark:text-white w-full p-2 border border-gray-300 ${errors.source ? 'border-red-500' : 'border-gray-300'}`}
               disabled={isSubmitting}
             >
               <option value="">Select Source</option>
@@ -205,7 +205,7 @@ const EditExample: React.FC<EditExampleProps> = ({
               name="level"
               value={level}
               onChange={(e) => setLevel(e.target.value)}
-              className={`dark:text-black w-full p-2 border border-gray-300 ${errors.level ? 'border-red-500' : 'border-gray-300'}`}
+              className={`dark:text-white w-full p-2 border border-gray-300 ${errors.level ? 'border-red-500' : 'border-gray-300'}`}
               disabled={isSubmitting}
             >
               <option value="">Select level</option>
@@ -230,7 +230,7 @@ const EditExample: React.FC<EditExampleProps> = ({
               name="theme"
               value={theme}
               onChange={(e) => setTheme(e.target.value)}
-              className={`dark:text-black w-full p-2 border border-gray-300 ${errors.theme ? 'border-red-500' : 'border-gray-300'}`}
+              className={`dark:text-white w-full p-2 border border-gray-300 ${errors.theme ? 'border-red-500' : 'border-gray-300'}`}
               disabled={isSubmitting}
             />
             {errors.theme && (
@@ -246,7 +246,7 @@ const EditExample: React.FC<EditExampleProps> = ({
               name="status"
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className={`dark:text-black w-full p-2 border border-gray-300 ${errors.status ? 'border-red-500' : 'border-gray-300'}`}
+              className={`dark:text-white w-full p-2 border border-gray-300 ${errors.status ? 'border-red-500' : 'border-gray-300'}`}
               disabled={isSubmitting}
             >
               <option value="">Select Status</option>

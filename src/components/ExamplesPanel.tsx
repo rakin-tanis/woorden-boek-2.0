@@ -238,7 +238,7 @@ const ExamplesPanel: React.FC = () => {
   }
 
   return (
-    <div className='p-4'>
+    <div className='flex flex-row justify-center items-start gap-16 p-4'>
       <ExamplesDataTable
         data={data}
         total={total}

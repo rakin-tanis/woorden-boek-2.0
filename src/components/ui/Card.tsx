@@ -50,7 +50,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(({
       className={`rounded-lg border border-gray-200 bg-white shadow-sm 
         transition-all duration-200 
         hover:shadow-md 
-        dark:border-gray-800 dark:bg-gray-950 
+        dark:border-gray-700 dark:bg-gray-900 
         ${className}`}
       {...props}
     >

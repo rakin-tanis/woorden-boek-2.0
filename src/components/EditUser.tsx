@@ -39,7 +39,7 @@ export default function EditUser({ user, isLoading, updateUser, cancel }: EditUs
 
   return (
     <div className="space-y-4 p-4 min-w-96">
-      <h1 className="text-2xl font-bold">Edit User</h1>
+      <h1 className="text-2xl font-bold dark:text-gray-200">Edit User</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           {user?.image ? (
@@ -51,7 +51,7 @@ export default function EditUser({ user, isLoading, updateUser, cancel }: EditUs
               className="rounded-full"
             />
           ) : (
-            <CircleUserRound className="w-20 h-20" />
+            <CircleUserRound className="w-20 h-20 dark:text-gray-200" />
           )}
         </div>
         <div>

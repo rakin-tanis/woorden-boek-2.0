@@ -38,14 +38,14 @@ const Pagination: React.FC<PaginationProps> = ({
 
   return (
     <div className="flex items-center justify-between">
-      <div className="text-sm text-gray-500">
+      <div className="text-sm dark:text-gray-300 text-gray-500">
         Showing {(page - 1) * itemsPerPage + 1} to {Math.min(page * itemsPerPage, total)} of {total} entries
       </div>
       {/* New input and button for navigating to specific page */}
       <div>
         <button
           onClick={goToPage}
-          className="p-2 rounded-lg text-sm hover:bg-gray-100"
+          className="p-2 mr-2 rounded-lg text-sm text-black hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
         >
           Go to page
         </button>
@@ -54,23 +54,23 @@ const Pagination: React.FC<PaginationProps> = ({
           value={inputPage}
           onChange={handleInputChange}
           onKeyDown={(e) => e.key === "Enter" && goToPage()}
-          className="w-16 p-1 border rounded text-sm text-black"
+          className="w-16 p-1 border rounded text-sm text-black dark:text-white"
         />
 
       </div>
       <div className="flex items-center space-x-2">
         <button
-          className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50"
+          className="p-2 rounded-lg dark:text-gray-200 dark:hover:bg-gray-700 hover:bg-gray-100 disabled:opacity-50"
           onClick={() => onPageNumberChange(page - 1)}
           disabled={page === 1}
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <span className="text-sm">
+        <span className="text-sm dark:text-white">
           Page {page} of {totalPages || 1}
         </span>
         <button
-          className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50"
+          className="p-2 rounded-lg dark:text-gray-200 dark:hover:bg-gray-700 hover:bg-gray-100 disabled:opacity-50"
           onClick={() => onPageNumberChange(page + 1)}
           disabled={page === totalPages}
         >

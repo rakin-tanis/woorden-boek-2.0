@@ -32,7 +32,7 @@ const Navbar = () => {
           <div>
             <Link href="/" className="flex gap-1 items-center" aria-label="Homepage">
               <Image src={'/icons/icon.png'} alt="icon" width={50} height={50} className="dark:bg-white dark:rounded-2xl dark:border-2"></Image>
-              <span className="ml-2 text-3xl font-medium dark:text-white pt-1.5">
+              <span className="ml-2 text-3xl text-gray-950 dark:text-white font-bold pt-1.5">
                 Woorden Boek
               </span>
             </Link>

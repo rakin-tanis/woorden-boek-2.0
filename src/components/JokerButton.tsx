@@ -287,7 +287,7 @@ const JokerButton: React.FC<JokerButtonProps> = ({
           variant="outline"
           size="icon"
           onClick={handleClick}
-          disabled={disabled}
+          disabled={disabled || count === 0}
           className={`
             transition-all duration-300 ease-in-out transform
             ${getAnimationClasses()}
@@ -302,8 +302,8 @@ const JokerButton: React.FC<JokerButtonProps> = ({
         >
           {children}
         </Button>
-        <span className="text-base">
-          {count ? count : <span>&#8734;</span>}
+        <span className="text-base text-gray-950 dark:text-white">
+          {count}
         </span>
       </div>
     </>

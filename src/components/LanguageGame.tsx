@@ -54,9 +54,9 @@ const LanguageGame: React.FC = () => {
 
 
   const [jokers, setJokers] = useState({
-    hint: 3,
-    revealAnswer: 2,
-    skipQuestion: 10
+    hint: 5,
+    revealAnswer: 7,
+    skipQuestion: 20
   });
 
   // Fetch game examples
@@ -298,7 +298,7 @@ const LanguageGame: React.FC = () => {
 
       updatePlayer(`${result}`);
     }
-  }, [gameState.currentQuestion, gameState.currentQuestionIndex, gameState.examples, gameState.isAnswerSubmitted, gameState.report, gameState.streak, gameState.userAnswer]);
+  }, [gameState.currentQuestion, gameState.currentQuestionIndex, gameState.examples, gameState.report, gameState.userAnswer, updatePlayer]);
 
 
 
@@ -319,7 +319,7 @@ const LanguageGame: React.FC = () => {
 
 
   const renderLoadingState = () => (
-    <Card className="max-w-2xl mx-auto p-6 text-center">
+    <Card className="max-w-2xl mx-auto p-6 text-center text-gray-950 dark:text-white">
       Loading game...
     </Card>
   );
@@ -327,13 +327,13 @@ const LanguageGame: React.FC = () => {
 
   const renderFinishedState = () => (
     <Card className="max-w-2xl mx-auto p-6 space-y-6">
-      <div className="text-center space-y-4">
+      <div className="text-center space-y-4 text-gray-950 dark:text-white">
         <h3 className="text-xl font-bold">
-          {'Congratulations! 🎉'}
+          {'Gefeliciteerd! 🎉'}
         </h3>
-        <p>Final Score: {gameState.score}</p>
+        <p>Eindscore: {gameState.score}</p>
         <p>{getMotivationPhrase(Object.values(gameState.report).map(({ result }) => (result === "success")).filter(r => r).length)}</p>
-        <p>Your level is {gameState.level}</p>
+        <p>Je nieuwe niveau is {gameState.level}</p>
         <Button
           onClick={() => {
             // Reset everything
@@ -358,7 +358,7 @@ const LanguageGame: React.FC = () => {
   )
 
   const renderGamePlay = () => (
-    <Card className={`max-w-2xl mx-auto p-6 space-y-6 ${gameState.isShaking ? 'animate-shake' : ''}`}>
+    <Card className={`max-w-2xl mx-auto p-6 space-y-6 bg-white dark:bg-gray-950 ${gameState.isShaking ? 'animate-shake' : ''}`}>
       <div className="flex space-x-4">
         {/* Hint Joker */}
         <JokerButton
@@ -385,6 +385,7 @@ const LanguageGame: React.FC = () => {
         {/* Check answer Joker */}
         <JokerButton
           onClick={checkAnswer}
+          count={jokers.skipQuestion}
           disabled={gameState.isAnswerSubmitted}
           variant={'lime'}
           animationVariant="bubbly"
@@ -395,7 +396,7 @@ const LanguageGame: React.FC = () => {
 
 
       {/* Level, Score and Time display */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center text-gray-950 dark:text-white">
         <div className="flex items-center space-x-2">
           <span className="text-lg font-bold">Level:</span>
           <span className="text-lg font-bold">{gameState.level}</span>
@@ -415,8 +416,8 @@ const LanguageGame: React.FC = () => {
 
       {gameState.currentQuestion && (
         <div className="space-y-4">
-          <div className="text-center">
-            <div className="text-sm text-gray-500 mb-2">
+          <div className="text-center text-gray-950 dark:text-white">
+            <div className="text-sm text-gray-500 dark:text-gray-300 mb-2">
               Level: {gameState.currentQuestion.level} - {gameState.currentQuestion.theme}
             </div>
             <div className="text-xl font-medium">{gameState.currentQuestion.turkish}</div>
