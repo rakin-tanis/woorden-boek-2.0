@@ -74,9 +74,21 @@ export interface Player {
   userId: string;
   name: string;
   level: number;
+  score: number;
 }
 
 export interface ThemeDistribution {
   theme: number;
   questionCount: number;
+}
+
+export interface Joker {
+  order: number;
+  name: string;
+  action: () => void;
+  count: number;
+  disabled: boolean;
+  variant: "yellow" | "purple" | "lime" | "blue";
+  animationVariant: "bubbly";
+  icon: React.ReactNode;
 }

@@ -1,4 +1,4 @@
-import LanguageGame from '@/components/LanguageGame'
+import LanguageGame from '@/components/game/LanguageGame'
 import React from 'react'
 
 const page = () => {

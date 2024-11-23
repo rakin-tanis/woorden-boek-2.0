@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Example } from '@/types';
-import { Button } from './ui/Button';
+import { Button } from '../ui/Button';
 
 interface EditExampleProps {
   example?: Example;

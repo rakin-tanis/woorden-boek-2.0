@@ -125,6 +125,7 @@ const calculateLevel = (
   }
 ): number => {
   // Validate input
+  // console.log(answers)
   if (answers.length !== config.totalQuestions) {
     throw new Error(
       `Expected ${config.totalQuestions} questions, got ${answers.length}`
@@ -160,6 +161,7 @@ const calculateLevel = (
     weightedScore += correctCount * themeWeight;
     totalWeight += themeWeight;
   }
+  // console.log(weightedScore, totalWeight)
 
   // Prevent division by zero
   if (totalWeight === 0) return 1;
@@ -169,9 +171,12 @@ const calculateLevel = (
     (weightedScore / totalWeight) *
     (config.maxLevel / config.totalQuestions) *
     totalCorrectAnswers;
+  // console.log(rawLevel)
 
   // Round and constrain to 1-10 range
-  return Math.max(1, Math.min(config.maxLevel, Math.round(rawLevel)));
+  const level = Math.max(1, Math.min(config.maxLevel, Math.round(rawLevel)));
+  // console.log(level)
+  return level;
 };
 
 const getMotivationPhrase = (correctNumber: number) => {

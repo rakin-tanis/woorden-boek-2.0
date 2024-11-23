@@ -1,7 +1,7 @@
 import React from 'react'
 import SSProtectedComponent from '@/components/SSProtectedComponent';
-import UserPanel from '@/components/UsersPanel';
-import ExamplesPanel from '@/components/ExamplesPanel';
+import UserPanel from '@/components/admin/UsersPanel';
+import ExamplesPanel from '@/components/admin/ExamplesPanel';
 
 const page = async () => {
 

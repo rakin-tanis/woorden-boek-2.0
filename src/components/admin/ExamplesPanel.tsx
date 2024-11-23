@@ -4,10 +4,10 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useDebounce } from '@/hooks/UseDebounce';
 import ExamplesDataTable from './ExamplesDataTable';
 import { Example } from '@/types';
-import ConfirmModal from './ui/ConfirmModal';
+import ConfirmModal from '../ui/ConfirmModal';
 import EditExample from './EditExample';
 import { toast } from 'sonner';
-import { Modal } from './ui/Modal';
+import { Modal } from '../ui/Modal';
 
 interface FilterState {
   source: string[];

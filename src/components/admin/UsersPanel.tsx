@@ -13,10 +13,10 @@ import {
 } from '@/components/ui/Table';
 import Pagination from "@/components/ui/Pagination";
 import { useSession } from 'next-auth/react';
-import ConfirmModal from './ui/ConfirmModal';
+import ConfirmModal from '../ui/ConfirmModal';
 import { toast } from 'sonner';
 import { User } from '@/types';
-import { Modal } from './ui/Modal';
+import { Modal } from '../ui/Modal';
 import EditUser from './EditUser';
 
 

@@ -13,8 +13,8 @@ import {
   TableRow,
 } from "@/components/ui/Table";
 import { MultiSelect, Option } from '@/components/ui/MultiSelect';
-import HighlightText from './ui/HighlightText';
-import Pagination from './ui/Pagination';
+import HighlightText from '../ui/HighlightText';
+import Pagination from '../ui/Pagination';
 import { Example } from '@/types';
 
 interface ExamplesTableProps {
