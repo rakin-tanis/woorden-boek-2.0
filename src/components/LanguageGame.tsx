@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, ReactNode } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Progress } from '@/components/ui/Progress';
 import { Button } from '@/components/ui/Button';
@@ -11,6 +11,23 @@ import JokerButton from './JokerButton';
 import { calculateLevel, getMotivationPhrase } from '@/lib/game';
 import { useSession } from 'next-auth/react';
 import Accordion from './ui/Accordion';
+
+interface Joker {
+  order: number;
+  name: string;
+  action: () => void;
+  count: number;
+  disabled: boolean;
+  variant: "yellow" | "purple" | "lime" | "blue";
+  animationVariant: "bubbly" | "scale" | "default" | "bubble" | "glow-press" | undefined;
+  icon: ReactNode;
+}
+
+interface JokersState {
+  hint: Joker;
+  eye: Joker;
+  defender: Joker;
+}
 
 interface GameState {
   examples: Example[],
@@ -53,12 +70,116 @@ const LanguageGame: React.FC = () => {
     isShaking: false,
   });
 
+  const useHintJoker = () => {
+    console.log('useHintJoker')
+    console.log(gameState, jokers)
+    // if (!gameState.currentQuestion) return;
+    if (gameState.isAnswerSubmitted) return;
+    if (jokers.hint.count < 1) return;
+    // setUserAnswer(currentQuestion.dutch);
+    setJokers(prev => ({
+      ...prev,
+      hint: {
+        ...prev.hint,
+        count: prev.hint.count - 1,
+      }
+    }));
+  };
 
-  const [jokers, setJokers] = useState({
-    hint: 5,
-    revealAnswer: 7,
-    skipQuestion: 20
+  const useRevealAnswerJoker = () => {
+    console.log('useRevealAnswerJoker')
+    // if (!gameState.currentQuestion) return;
+    if (gameState.isAnswerSubmitted) return;
+    if (jokers.eye.count < 1) return;
+    // setUserAnswer(currentQuestion.dutch);
+
+    setJokers(prev => ({
+      ...prev,
+      eye: {
+        ...prev.eye,
+        count: prev.eye.count - 1,
+      }
+    }));
+
+    // Automatically submit the answer
+    // showAnswer();
+  };
+
+  const checkAnswer = () => {
+    console.log('checkAnswer')
+    // if (!gameState.currentQuestion) return;
+    if (gameState.isAnswerSubmitted) return;
+    if (jokers.defender.count < 1) return;
+
+    const cleanedInputAnswer = gameState.userAnswer.toLowerCase().trim();
+    const cleanedCorrectAnswer = gameState.currentQuestion?.dutch.toLowerCase().trim();
+
+    const isCorrect = cleanedInputAnswer === cleanedCorrectAnswer;
+
+    if (isCorrect) {
+      showAnswer();
+    } else {
+      setGameState(state => ({ ...state, isShaking: true }))
+
+      // Remove shake animation after it completes
+      setTimeout(() => {
+        setGameState(state => ({ ...state, isShaking: false }))
+      }, 500); // Match the animation duration
+      // vibrate button
+    }
+
+    setJokers(prev => ({
+      ...prev,
+      defender: {
+        ...prev.defender,
+        count: prev.defender.count - 1,
+      }
+    }));
+
+  };
+
+  const [jokers, setJokers] = useState<JokersState>({
+    hint: {
+      order: 1,
+      name: 'hint',
+      action: useHintJoker,
+      count: 3,
+      disabled: gameState.isAnswerSubmitted,
+      variant: 'yellow',
+      animationVariant: 'bubbly',
+      icon: <Zap className="w-6 h-6" />
+    },
+    eye: {
+      order: 2,
+      name: 'Oog',
+      action: useRevealAnswerJoker,
+      count: 3,
+      disabled: gameState.isAnswerSubmitted,
+      variant: 'purple',
+      animationVariant: 'bubbly',
+      icon: <Eye className="w-6 h-6" />
+    },
+    defender: {
+      order: 3,
+      name: 'Beschermer',
+      action: checkAnswer,
+      count: 10,
+      disabled: gameState.isAnswerSubmitted,
+      variant: 'lime',
+      animationVariant: 'bubbly',
+      icon: <Shield className="w-6 h-6" />
+    },
   });
+
+  // const addJoker = (name: string) => {
+    // setJokers(prev => ({
+    //   ...prev,
+    //   [name]: {
+    //     ...prev[name],
+    //     count: prev.defender.count + 1,
+    //   }
+    // }));
+  // }
 
   // Fetch game examples
   const fetchGameExamples = useCallback(async () => {
@@ -158,63 +279,12 @@ const LanguageGame: React.FC = () => {
     }
   }, []);
 
-  const useHintJoker = () => {
-    if (jokers.hint > 0 && gameState.currentQuestion) {
-      // Reveal first few letters of the answer
-      // const partialAnswer = currentQuestion.dutch.slice(0, Math.ceil(currentQuestion.dutch.length / 2));
-      // setUserAnswer(partialAnswer);
-
-      setJokers(prev => ({
-        ...prev,
-        hint: prev.hint - 1
-      }));
-    }
-  };
-
-  const useRevealAnswerJoker = () => {
-    if (jokers.revealAnswer > 0 && gameState.currentQuestion) {
-      // setUserAnswer(currentQuestion.dutch);
-
-      setJokers(prev => ({
-        ...prev,
-        revealAnswer: prev.revealAnswer - 1
-      }));
-
-      // Automatically submit the answer
-      // showAnswer();
-    }
-  };
-
   const isAnswerCorrect = (userAnswer: string, correctAnswer: string) => {
     const cleanedInput = userAnswer.toLowerCase().trim();
     const cleanedCorrect = correctAnswer.toLowerCase().trim();
 
     return cleanedInput === cleanedCorrect;
   };
-
-  const checkAnswer = () => {
-    if (!gameState.currentQuestion) return;
-
-    if (!gameState.isAnswerSubmitted) {
-      const cleanedInputAnswer = gameState.userAnswer.toLowerCase().trim();
-      const cleanedCorrectAnswer = gameState.currentQuestion.dutch.toLowerCase().trim();
-
-      const isCorrect = cleanedInputAnswer === cleanedCorrectAnswer;
-
-      if (isCorrect) {
-        showAnswer();
-      } else {
-        setGameState(state => ({ ...state, isShaking: true }))
-
-        // Remove shake animation after it completes
-        setTimeout(() => {
-          setGameState(state => ({ ...state, isShaking: false }))
-        }, 500); // Match the animation duration
-        // vibrate button
-      }
-    }
-
-  }
 
   const showAnswer = useCallback((message?: string) => {
     setGameState(prevState => {
@@ -291,7 +361,7 @@ const LanguageGame: React.FC = () => {
         themeLevel: Number(r.example.theme),
         isCorrect: r.result === "success"
       })))
-      
+
       updatePlayer(`${result}`);
     }
   }, [gameState, updatePlayer]);
@@ -400,39 +470,21 @@ const LanguageGame: React.FC = () => {
 
   const renderGamePlay = () => (
     <Card className={`max-w-2xl mx-auto p-6 space-y-6 bg-white dark:bg-gray-950 ${gameState.isShaking ? 'animate-shake' : ''}`}>
-      <div className="flex space-x-4">
-        {/* Hint Joker */}
-        <JokerButton
-          onClick={useHintJoker}
-          count={jokers.hint}
-          disabled={gameState.isAnswerSubmitted}
-          variant={'yellow'}
-          animationVariant="bubbly"
-        >
-          <Zap className="w-5 h-5" />
-        </JokerButton>
-
-        {/* Reveal Answer Joker */}
-        <JokerButton
-          onClick={useRevealAnswerJoker}
-          count={jokers.revealAnswer}
-          disabled={gameState.isAnswerSubmitted}
-          variant={'purple'}
-          animationVariant="bubbly"
-        >
-          <Eye className="w-5 h-5" />
-        </JokerButton>
-
-        {/* Check answer Joker */}
-        <JokerButton
-          onClick={checkAnswer}
-          count={jokers.skipQuestion}
-          disabled={gameState.isAnswerSubmitted}
-          variant={'lime'}
-          animationVariant="bubbly"
-        >
-          <Shield className="w-5 h-5" />
-        </JokerButton>
+      <div className="flex space-x-4 h-12">
+        {Object.values(jokers)
+          .sort((a: Joker, b: Joker) => a.order - b.order)
+          .map((joker: Joker) => (
+            <JokerButton
+              key={joker.name}
+              action={joker.action}
+              count={joker.count}
+              disabled={joker.disabled}
+              variant={joker.variant}
+              animationVariant={joker.animationVariant}
+            >
+              {joker.icon}
+            </JokerButton>
+          ))}
       </div>
 
 

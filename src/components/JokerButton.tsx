@@ -4,9 +4,10 @@ import React, { useEffect, useState } from 'react'
 import { Button } from './ui/Button'
 
 interface JokerButtonProps {
-  count?: number,
+  name?: string,
+  action: () => void;
+  count: number,
   disabled?: boolean;
-  onClick: () => void;
   children: React.ReactNode;
   variant: keyof typeof buttonVariants;
   animationVariant?: 'bubble' | 'scale' | 'glow-press' | 'bubbly' | 'default';
@@ -30,88 +31,6 @@ const buttonVariants = {
     disabled: "bg-lime-300 text-white cursor-not-allowed opacity-50"
   }
 }
-
-// Bubble burst animation styles
-const getBubbleStyles = () => `
-  @keyframes bubble-burst {
-    0% {
-      transform: scale(1);
-      opacity: 1;
-    }
-    50% {
-      transform: scale(1.5);
-      opacity: 0.7;
-    }
-    100% {
-      transform: scale(2);
-      opacity: 0;
-    }
-  }
-
-  .bubble-burst {
-    position: relative;
-    // overflow: hidden;
-  }
-
-  .bubble-burst::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 0;
-    height: 0;
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    animation: bubble-burst 0.6s ease-out;
-  }
-
-  .bubble-burst:active::after {
-    width: 200%;
-    height: 200%;
-  }
-`
-
-const getGlowPressStyles = () => `
-  .glow-press {
-    position: relative;
-    transition-duration: 0.4s;
-    transition-property: background-color;
-    // overflow: hidden;
-  }
-
-  .glow-press:hover {
-    transition-duration: 0.1s;
-  }
-
-  .glow-press::after {
-    content: "";
-    display: block;
-    position: absolute;
-    border-radius: 4em;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    transition: all 0.5s;
-    box-shadow: 0 0 10px 40px rgba(255, 255, 255, 0.5);
-  }
-
-  .glow-press:active::after {
-    box-shadow: 0 0 0 0 white;
-    position: absolute;
-    border-radius: 4em;
-    left: 0;
-    top: 0;
-    opacity: 1;
-    transition: 0s;
-  }
-
-  .glow-press:active {
-    transform: translateY(1px);
-  }
-`
 
 // Custom styles for bubbly button effect
 const getBubblyButtonStyles = (buttonColor: string) => `
@@ -210,12 +129,13 @@ const getBubblyButtonStyles = (buttonColor: string) => `
 const JokerButton: React.FC<JokerButtonProps> = ({
   count,
   disabled = false,
-  onClick,
+  action,
   children,
   variant,
   animationVariant = 'default'
 }) => {
   const [isClicked, setIsClicked] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   const [clientStyles, setClientStyles] = useState<string | null>(null);
 
   // Color mapping for different variants
@@ -227,49 +147,39 @@ const JokerButton: React.FC<JokerButtonProps> = ({
   } */
 
   useEffect(() => {
-    if (animationVariant === 'glow-press') {
-      setClientStyles(getGlowPressStyles());
-    }
-    else if (animationVariant == 'bubble') {
-      setClientStyles(getBubbleStyles());
-    }
-    else if (animationVariant === 'bubbly') {
+    if (animationVariant === 'bubbly') {
       setClientStyles(getBubblyButtonStyles('234, 179, 8'/* variantColors[variant] */));
     }
   }, [animationVariant, variant]);
+
+  useEffect(() => {
+    if (count > 0) {
+      setIsVisible(true);
+    } else {
+      setIsVisible(false); // Hide the button if count is 0
+    }
+  }, [count]);
 
   const handleClick = () => {
     if (disabled) return;
 
     setIsClicked(true);
-    onClick();
+    action();
 
     // Trigger bubbly animation if applicable
     if (animationVariant === 'bubbly') {
       setTimeout(() => {
         setIsClicked(false);
+        if (count < 1) {
+          setIsVisible(false)
+        }
       }, 700);
-    } else {
-      setTimeout(() => {
-        setIsClicked(false);
-      }, 300);
     }
   }
 
   // Function to get animation classes based on variant
   const getAnimationClasses = () => {
     switch (animationVariant) {
-      case 'bubble':
-        return 'bubble-burst';
-      case 'scale':
-        return `
-          ${isClicked
-            ? 'scale-90 opacity-80 shadow-sm'
-            : 'hover:scale-105'}
-          active:scale-90
-        `;
-      case 'glow-press':
-        return 'glow-press';
       case 'bubbly':
         return `bubbly-button ${isClicked ? 'animate' : ''}`;
       default:
@@ -282,30 +192,32 @@ const JokerButton: React.FC<JokerButtonProps> = ({
       {/* Add bubble burst styles */}
       {clientStyles && <style>{clientStyles}</style>}
 
-      <div className='flex flex-row gap-4 items-center'>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={handleClick}
-          disabled={disabled || count === 0}
-          className={`
+      {isVisible &&
+        <div className='flex flex-row gap-4 items-center'>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={handleClick}
+            disabled={disabled || count < 1}
+            className={`relative pb-4 h-11
             transition-all duration-300 ease-in-out transform
             ${getAnimationClasses()}
             ${!count || (count && count > 0)
-              ? buttonVariants[variant].enabled
-              : buttonVariants[variant].disabled}
+                ? buttonVariants[variant].enabled
+                : buttonVariants[variant].disabled}
             focus:outline-none focus:ring-0 
             focus:ring-${variant}-500 
             dark:focus:outline-none dark:focus:ring-0
           `}
-          title="Get a Hint"
-        >
-          {children}
-        </Button>
-        <span className="text-base text-gray-950 dark:text-white">
-          {count}
-        </span>
-      </div>
+            title="Get a Hint"
+          >
+            {children}
+            <span className="absolute bottom-0.5 right-0.5 text-xs text-gray-950 dark:text-white drop-shadow-sm">
+              {count}
+            </span>
+          </Button>
+
+        </div>}
     </>
   )
 }
