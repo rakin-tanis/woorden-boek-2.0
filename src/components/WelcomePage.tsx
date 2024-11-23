@@ -157,17 +157,17 @@ const WelcomePage: React.FC = () => {
         dropShadow: "drop-shadow-[0_4px_6px_rgba(234,179,8,0.3)]"
       },
       {
-        name: "Eye",
+        name: "Oog",
         icon: Eye,
-        description: "Scan and reveal hidden errors at a glance",
+        description: "Scan en onthul verborgen fouten in een oogopslag",
         initialCount: 2,
         color: "purple-600",
         dropShadow: "drop-shadow-[0_4px_6px_rgba(147,51,234,0.3)]"
       },
       {
-        name: "Guardian",
+        name: "Beschermer",
         icon: Shield,
-        description: "Defend against potential mistakes before they strike",
+        description: "Verdedig je tegen mogelijke fouten voordat ze toeslaan",
         initialCount: 1,
         color: "lime-500",
         dropShadow: "drop-shadow-[0_4px_6px_rgba(132,204,22,0.3)]"
@@ -186,7 +186,7 @@ const WelcomePage: React.FC = () => {
           animate={{ y: 0, opacity: 1 }}
           className="text-3xl font-bold text-center text-gray-800 dark:text-gray-100"
         >
-          How to Play
+          Hoe te spelen
         </motion.h2>
 
         <motion.div
@@ -196,19 +196,18 @@ const WelcomePage: React.FC = () => {
         >
           <div className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-md">
             <h3 className="text-xl font-semibold mb-2 text-blue-600 dark:text-blue-400">
-              Game Overview
+              Speloverzicht
             </h3>
             <ul className="list-disc list-inside space-y-2">
-              <li>Total Questions per Session: 10</li>
-              <li>Languages: Dutch to Turkish and vice versa</li>
-              <li>Time per Question: 30 seconds</li>
-              <li>Passing Score: 70%</li>
+              <li>Totaal Aantal Vragen per Sessie: 10</li>
+              <li>Talen: Turks naar Nederlands</li>
+              <li>Tijd per Vraag: 60 seconden</li>
             </ul>
           </div>
 
           <div className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-md">
             <h3 className="text-xl font-semibold mb-2 text-green-600 dark:text-green-400">
-              Joker Buttons
+              Jokerknoppen
             </h3>
             <div className="grid md:grid-cols-3 gap-4">
               {jokerTypes.map((joker) => (
@@ -224,7 +223,7 @@ const WelcomePage: React.FC = () => {
                   </p>
                   <div className="flex items-center justify-center">
                     <span className="text-sm font-bold bg-blue-100 dark:bg-blue-800 px-2 py-1 rounded">
-                      Available: {joker.initialCount}
+                      Beschikbaar: {joker.initialCount}
                     </span>
                   </div>
                 </motion.div>
@@ -237,7 +236,7 @@ const WelcomePage: React.FC = () => {
             className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg border-l-4 border-blue-500"
           >
             <p className="text-blue-700 dark:text-blue-300">
-              💡 Pro Tip: Use your jokers wisely! They can be crucial in challenging questions.
+              💡 Pro Tip: Gebruik je jokers verstandig! Ze kunnen cruciaal zijn bij uitdagende vragen.
             </p>
           </motion.div>
         </motion.div>
@@ -276,7 +275,7 @@ const WelcomePage: React.FC = () => {
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
-        className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 w-full max-w-4xl border border-transparent dark:border-gray-700"
+        className="bg-white dark:bg-gray-800 rounded-2xl p-8 w-full max-w-4xl shadow-2xl border border-transparent dark:border-gray-700"
       >
         {renderContent()}
       </motion.div>

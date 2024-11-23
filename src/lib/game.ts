@@ -124,7 +124,6 @@ const calculateLevel = (
     maxLevel: 10,
   }
 ): number => {
-  console.log(answers, config)
   // Validate input
   if (answers.length !== config.totalQuestions) {
     throw new Error(

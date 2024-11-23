@@ -10,6 +10,7 @@ import { Example } from '@/types';
 import JokerButton from './JokerButton';
 import { calculateLevel, getMotivationPhrase } from '@/lib/game';
 import { useSession } from 'next-auth/react';
+import Accordion from './ui/Accordion';
 
 interface GameState {
   examples: Example[],
@@ -21,7 +22,7 @@ interface GameState {
   timeRemaining: number;
   gameStatus: 'loading' | 'playing' | 'finished';
   level: string;
-  report: Record<string, { level: string, result: string }>;
+  report: { example: Example, result: string }[];
   feedback: string[];
   progress: number;
   isAnswerSubmitted: boolean;
@@ -31,7 +32,7 @@ interface GameState {
 }
 
 const LanguageGame: React.FC = () => {
-  const { data: session, update: updateSession, status: sessionStatus } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   // Consolidate state management
   const [gameState, setGameState] = useState<GameState>({
     examples: [],
@@ -43,7 +44,7 @@ const LanguageGame: React.FC = () => {
     timeRemaining: 60,
     gameStatus: 'loading',
     level: session?.user?.level || '',
-    report: {},
+    report: [],
     feedback: [],
     progress: 0,
     isAnswerSubmitted: false,
@@ -64,7 +65,7 @@ const LanguageGame: React.FC = () => {
     try {
 
       // Only fetch if session is loaded
-      if (sessionStatus === 'loading') return;
+      if (sessionStatus === 'loading' || gameState.gameStatus === 'finished') return;
 
       const url = gameState.level
         ? `/api/game?level=${gameState.level}`
@@ -96,7 +97,7 @@ const LanguageGame: React.FC = () => {
       console.error('Error fetching game examples:', error);
       setGameState(state => ({ ...state, gameStatus: 'finished' }));
     }
-  }, [gameState.level, session, sessionStatus])
+  }, [gameState.gameStatus, gameState.level, sessionStatus])
 
   // Fetch player details function
   const fetchPlayerDetails = useCallback(async () => {
@@ -124,7 +125,7 @@ const LanguageGame: React.FC = () => {
     } catch (error) {
       console.error('Error fetching player details:', error);
     }
-  }, [sessionStatus, session, updateSession]);
+  }, [sessionStatus]);
 
   // Initial fetch effect
   useEffect(() => {
@@ -143,7 +144,6 @@ const LanguageGame: React.FC = () => {
 
   // Main game logic methods
   const updatePlayer = useCallback(async (newLevel: string) => {
-    console.log("updatePlayer: ", newLevel)
     try {
       await fetch('/api/player', {
         method: 'PUT',
@@ -188,7 +188,6 @@ const LanguageGame: React.FC = () => {
   const isAnswerCorrect = (userAnswer: string, correctAnswer: string) => {
     const cleanedInput = userAnswer.toLowerCase().trim();
     const cleanedCorrect = correctAnswer.toLowerCase().trim();
-    console.log(cleanedInput, cleanedCorrect)
 
     return cleanedInput === cleanedCorrect;
   };
@@ -229,13 +228,10 @@ const LanguageGame: React.FC = () => {
             questionStatus: "success",
             score: (prevState.score + 10) * (prevState.streak + 1),
             streak: prevState.streak + 1,
-            report: {
+            report: [
               ...prevState.report,
-              [gameState.currentQuestion!._id!]: {
-                level: gameState.currentQuestion!.theme, result: "success"
-
-              }
-            },
+              { example: gameState.currentQuestion, result: "success" }
+            ],
             feedback: ['Correct! Great job! 🎉'],
             progress: Math.min(prevState.progress + 10, 100),
             isAnswerSubmitted: true,
@@ -246,13 +242,10 @@ const LanguageGame: React.FC = () => {
             ...prevState,
             questionStatus: "failed",
             streak: 0,
-            report: {
+            report: [
               ...prevState.report,
-              [gameState.currentQuestion!._id!]: {
-                level: gameState.currentQuestion!.theme, result: "failed"
-
-              }
-            },
+              { example: gameState.currentQuestion, result: "failed" }
+            ],
             feedback: [
               message ? message : "Incorrect",
               "The correct answer was:",
@@ -280,9 +273,10 @@ const LanguageGame: React.FC = () => {
           // Reset states for new question
         } else {
           // All questions answered
-          const result = calculateLevel(Object.values(gameState.report).map(({ level, result }) => ({ themeLevel: Number(level), isCorrect: result === "success" })))
-          console.log("level: ", result)
-
+          const result = calculateLevel(gameState.report.map(r => ({
+            themeLevel: Number(r.example.theme),
+            isCorrect: r.result === "success"
+          })))
           return {
             ...prevState,
             level: `${result}`,
@@ -291,30 +285,34 @@ const LanguageGame: React.FC = () => {
         }
       }
     })
-
     // Move session update outside of setGameState
     if (gameState.currentQuestionIndex === gameState.examples.length) {
-      const result = calculateLevel(Object.values(gameState.report).map(({ level, result }) => ({ themeLevel: Number(level), isCorrect: result === "success" })))
-
+      const result = calculateLevel(gameState.report.map(r => ({
+        themeLevel: Number(r.example.theme),
+        isCorrect: r.result === "success"
+      })))
+      
       updatePlayer(`${result}`);
     }
-  }, [gameState.currentQuestion, gameState.currentQuestionIndex, gameState.examples, gameState.report, gameState.userAnswer, updatePlayer]);
+  }, [gameState, updatePlayer]);
 
 
 
   // Timer effect
   useEffect(() => {
     if (gameState.gameStatus !== 'playing' || !gameState.isTimerRunning) return;
-
+    let timer: NodeJS.Timeout;
     if (gameState.timeRemaining > 0) {
-      const timer = setInterval(() => {
-        setGameState((prev) => ({ ...prev, timeRemaining: prev.timeRemaining - 1 }));
+      timer = setInterval(() => {
+        setGameState((prev) => {
+          return { ...prev, timeRemaining: prev.timeRemaining - 1 }
+        });
       }, 1000);
 
-      return () => clearInterval(timer);
     } else {
       showAnswer("Time's up! ⏰")
     }
+    return () => clearInterval(timer);
   }, [gameState.timeRemaining, gameState.gameStatus, gameState.isTimerRunning, showAnswer]);
 
 
@@ -333,7 +331,47 @@ const LanguageGame: React.FC = () => {
         </h3>
         <p>Eindscore: {gameState.score}</p>
         <p>{getMotivationPhrase(Object.values(gameState.report).map(({ result }) => (result === "success")).filter(r => r).length)}</p>
-        <p>Je nieuwe niveau is {gameState.level}</p>
+        <p>Je nieuwe niveau is <span className='font-bold'>{gameState.level}</span></p>
+        <Accordion title="Resultaten">
+          <div className="space-y-4">
+            {<table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gray-100 dark:bg-gray-800">
+                  <th className="border p-2 text-left">Level</th>
+                  <th className="border p-2 text-left">Theme</th>
+                  <th className="border p-2 text-left">Question</th>
+                  <th className="border p-2 text-left">Correct?</th>
+                </tr>
+              </thead>
+              <tbody>
+                {gameState.report.map(({ example, result }) => (
+                  <tr
+                    key={example._id}
+                    className={`hover:bg-gray-50 dark:hover:bg-gray-700 
+                      ${result === 'success' ? "text-green-600" : "text-red-600"}`}
+                  >
+                    <td className="border p-2 text-sm">
+                      {example.level}
+                    </td>
+                    <td className="border p-2 text-sm">
+                      {example.theme}
+                    </td>
+                    <td className="border p-2 font-semibold">
+                      {example.dutch}
+                    </td>
+                    <td className="border p-2">
+                      {result === 'success'
+                        ? <span className="text-green-600 font-bold">✓</span>
+                        : <span className="text-red-600 font-bold">✗</span>
+                      }
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            }
+          </div>
+        </Accordion>
         <Button
           onClick={() => {
             // Reset everything
@@ -344,7 +382,10 @@ const LanguageGame: React.FC = () => {
               streak: 0,
               timeRemaining: 60,
               gameStatus: 'loading',
-              progress: 0
+              progress: 0,
+              report: [],
+              examples: [],
+              currentQuestion: null
             }));
             // Trigger a new game fetch
             window.location.reload();
@@ -459,6 +500,9 @@ const LanguageGame: React.FC = () => {
 
   // Main render method
   const renderGame = () => {
+    if (sessionStatus === 'loading') {
+      return renderLoadingState();
+    }
     switch (gameState.gameStatus) {
       case 'loading':
         return renderLoadingState();
@@ -469,11 +513,6 @@ const LanguageGame: React.FC = () => {
         return renderGamePlay();
     }
   };
-
-  // Conditional rendering for loading session
-  if (sessionStatus === 'loading') {
-    return renderLoadingState();
-  }
 
   return (
     <div>
