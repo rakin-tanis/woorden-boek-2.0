@@ -212,7 +212,7 @@ const JokerButton: React.FC<JokerButtonProps> = ({
             title="Get a Hint"
           >
             {children}
-            <span className="absolute bottom-0.5 right-0.5 text-xs text-gray-950 dark:text-white drop-shadow-sm">
+            <span className="absolute bottom-0.5 right-0.5 text-xs text-white drop-shadow-sm">
               {count}
             </span>
           </Button>
