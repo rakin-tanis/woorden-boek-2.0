@@ -4,37 +4,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateQuestionDistribution } from "@/lib/game";
 import { getServerSession } from "@/lib/auth";
 
-const firstGameDistribution = [
-  {
-    theme: 1,
-    questionCount: 3,
-  },
-  {
-    theme: 2,
-    questionCount: 2,
-  },
-  {
-    theme: 3,
-    questionCount: 1,
-  },
-  {
-    theme: 4,
-    questionCount: 1,
-  },
-  {
-    theme: 5,
-    questionCount: 1,
-  },
-  {
-    theme: 6,
-    questionCount: 1,
-  },
-  {
-    theme: 10,
-    questionCount: 1,
-  },
-];
-
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -52,12 +21,10 @@ export async function GET(request: NextRequest) {
       console.error("Error fetching user:", error);
     }
     const level =
-      player?.level || parseInt(searchParams.get("level") || "") || "";
+      player?.level || parseInt(searchParams.get("level") || "") || 1;
 
     const gameExamples = await getGameExamples(
-      level
-        ? generateQuestionDistribution(Number(level))
-        : firstGameDistribution
+      generateQuestionDistribution(Number(level))
     );
 
     // Shuffle the examples to randomize order
@@ -126,5 +93,3 @@ const getGameExamples = async (distribution: ThemeDistribution[]) => {
 
   return uniqueExamples;
 };
-
-

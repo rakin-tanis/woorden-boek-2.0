@@ -1,3 +1,5 @@
+import { GameState } from "@/hooks/useGameLogic";
+
 export interface MongoDBId {
   $oid: string;
 }
@@ -85,10 +87,15 @@ export interface ThemeDistribution {
 export interface Joker {
   order: number;
   name: string;
-  action: () => void;
+  action: (gameState: GameState, ...params: unknown[]) => void;
   count: number;
   disabled: boolean;
   variant: "yellow" | "purple" | "lime" | "blue";
   animationVariant: "bubbly";
   icon: React.ReactNode;
+}
+
+export interface AppliedJoker {
+  name: string;
+  indexes: number[];
 }

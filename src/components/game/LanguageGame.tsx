@@ -16,11 +16,11 @@ import { Joker } from '@/types';
 
 const LanguageGame: React.FC = () => {
   const { status: sessionStatus } = useSession();
-  const { gameState, setGameState, showAnswer, nextQuestion, isAnswerCorrect } = useGameLogic();
+  const { gameState, setGameState, showAnswer, nextQuestion, reset } = useGameLogic();
   const { fetchGameExamples: fetchExamples } = useGameExamplesFetch();
   const { fetchPlayerDetails: fetchPlayer, updatePlayerDetails: updatePlayer } = usePlayerFetch();
 
-  const { jokers } = useJokers(gameState, setGameState, showAnswer, isAnswerCorrect);
+  const { jokers, /* reset: resetJokers */ } = useJokers(setGameState);
 
   // Fetch game examples
   const fetchGameExamples = useCallback(async (level?: string) => {
@@ -42,7 +42,8 @@ const LanguageGame: React.FC = () => {
           ...state,
           examples: examples,
           currentQuestion: examples[0],
-          gameStatus: 'playing'
+          gameStatus: 'playing',
+          isTimerRunning: true
         }));
       } else {
         console.log('No examples found');
@@ -69,7 +70,7 @@ const LanguageGame: React.FC = () => {
         // Update game state with player level
         setGameState(prevState => ({
           ...prevState,
-          level: playerDetails.level.toString() || '',
+          level: playerDetails.level?.toString() || '1',
           score: playerDetails.score || 0
         }));
         return playerDetails.level;
@@ -120,28 +121,19 @@ const LanguageGame: React.FC = () => {
     };
   }, [gameState.gameStatus, gameState.level, gameState.score]);
 
+  /* useEffect(() => {
+    const nextIndex = gameState.currentQuestionIndex + 1;
+    const isFinished = nextIndex === gameState.examples.length;
+    if (isFinished) {
+      requestAnimationFrame(() => {
+        resetJokers();
+      });
+    }
+  }, [gameState.currentQuestionIndex, gameState.examples, resetJokers]); */
 
   // Handler for play again
   const handlePlayAgain = useCallback(async () => {
-    setGameState(prevState => {
-      return ({
-        ...prevState,
-        examples: [],
-        userAnswer: '',
-        currentQuestionIndex: 0,
-        currentQuestion: null,
-        streak: 0,
-        timeRemaining: 60,
-        gameStatus: 'loading',
-        report: [],
-        feedback: [],
-        progress: 0,
-        isAnswerSubmitted: false,
-        questionStatus: 'playing',
-        isTimerRunning: true,
-        isShaking: false,
-      })
-    });
+    reset({ score: gameState.score })
 
     try {
       await fetchGameExamples(gameState.level);
@@ -150,7 +142,6 @@ const LanguageGame: React.FC = () => {
       setGameState(state => ({ ...state, gameStatus: 'finished' }));
     }
   }, [fetchGameExamples, gameState.level]);
-
 
   // Loading state
   if (sessionStatus === 'loading' || gameState.gameStatus === 'loading') {
@@ -180,7 +171,14 @@ const LanguageGame: React.FC = () => {
           .map((joker: Joker) => (
             <JokerButton
               key={joker.name}
-              action={joker.action}
+              action={() => {
+                if (joker.name === 'Beschermer')
+                  joker.action(gameState, showAnswer)
+                if (joker.name === 'Oog')
+                  joker.action(gameState)
+                if (joker.name === 'hint')
+                  joker.action(gameState)
+              }}
               count={joker.count ?? 0}
               disabled={joker.disabled}
               variant={joker.variant}
@@ -206,6 +204,7 @@ const LanguageGame: React.FC = () => {
           currentQuestion={gameState.currentQuestion}
           questionStatus={gameState.questionStatus}
           feedback={gameState.feedback}
+          appliedJokers={gameState.appliedJokers}
           onAnswerComplete={(answer) =>
             setGameState(state => ({ ...state, userAnswer: answer }))
           }

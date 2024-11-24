@@ -1,18 +1,21 @@
-import { ThemeDistribution } from "@/types";
-
-interface Question {
-  themeLevel: number; // 1-10 representing theme difficulty
-  isCorrect: boolean; // Whether player answered correctly
+interface QuestionDistribution {
+  theme: number;
+  questionCount: number;
 }
 
-interface LevelCalculationConfig {
-  totalQuestions: number;
-  maxLevel: number;
+interface AnswerResult {
+  themeLevel: number;
+  isCorrect: boolean;
 }
 
 interface LevelCalculationResult {
   level: number; // Calculated player level
   confidence: number; // Confidence score of the level calculation (0-1)
+}
+
+interface WordDifference {
+  start: number;
+  end: number;
 }
 
 const motivationPhrases = [
@@ -117,67 +120,42 @@ const motivationPhrases = [
   },
 ];
 
-const calculateLevel = (
-  answers: Question[],
-  config: LevelCalculationConfig = {
-    totalQuestions: 10,
-    maxLevel: 10,
-  }
-): number => {
-  // Validate input
-  // console.log(answers)
-  if (answers.length !== config.totalQuestions) {
-    throw new Error(
-      `Expected ${config.totalQuestions} questions, got ${answers.length}`
-    );
-  }
+function calculateLevel(
+  answers: AnswerResult[],
+  currentLevel = 1
+): number {
+  // Weights for different theme levels relative to player's current level
+  const getQuestionWeight = (themeLevel: number): number => {
+    const levelDiff = themeLevel - currentLevel;
+    if (levelDiff < 0) return 0.8; // Lower level questions worth less
+    if (levelDiff > 0) return 1.2; // Higher level questions worth more
+    return 1.0; // Current level questions worth normal
+  };
 
-  // Group correct answers by theme level
-  const correctByThemeLevel = answers.reduce((acc, answer) => {
+  // Calculate total weighted score
+  const totalQuestions = answers.length;
+  let weightedCorrectAnswers = 0;
+
+  answers.forEach((answer) => {
     if (answer.isCorrect) {
-      acc[answer.themeLevel] = (acc[answer.themeLevel] || 0) + 1;
+      weightedCorrectAnswers += getQuestionWeight(answer.themeLevel);
     }
-    return acc;
-  }, {} as Record<number, number>);
+  });
 
-  // Count total correct answers
-  const totalCorrectAnswers = answers.filter(
-    (answer) => answer.isCorrect
-  ).length;
+  const performanceScore = weightedCorrectAnswers / totalQuestions;
 
-  // If all answers are correct, return the max level
-  if (totalCorrectAnswers === config.totalQuestions) {
-    return config.maxLevel;
+  // Calculate level change based on performance
+  if (performanceScore >= 0.8) {
+    // Excellent performance: gain 1-2 levels
+    return Math.min(50, currentLevel + (performanceScore >= 0.9 ? 2 : 1));
+  } else if (performanceScore >= 0.6) {
+    // Good performance: stay at current level
+    return currentLevel;
+  } else {
+    // Poor performance: drop 1 level
+    return Math.max(1, currentLevel - 1);
   }
-
-  // Weight calculation favoring higher theme levels
-  let weightedScore = 0;
-  let totalWeight = 0;
-
-  for (let themeLevel = 1; themeLevel <= config.maxLevel; themeLevel++) {
-    const correctCount = correctByThemeLevel[themeLevel] || 0;
-    const themeWeight = themeLevel; // Higher themes have higher weight
-
-    weightedScore += correctCount * themeWeight;
-    totalWeight += themeWeight;
-  }
-  // console.log(weightedScore, totalWeight)
-
-  // Prevent division by zero
-  if (totalWeight === 0) return 1;
-
-  // Calculate normalized level
-  const rawLevel =
-    (weightedScore / totalWeight) *
-    (config.maxLevel / config.totalQuestions) *
-    totalCorrectAnswers;
-  // console.log(rawLevel)
-
-  // Round and constrain to 1-10 range
-  const level = Math.max(1, Math.min(config.maxLevel, Math.round(rawLevel)));
-  // console.log(level)
-  return level;
-};
+}
 
 const getMotivationPhrase = (correctNumber: number) => {
   const random = Math.floor(Math.random() * 4);
@@ -186,63 +164,132 @@ const getMotivationPhrase = (correctNumber: number) => {
     .phrases[random];
 };
 
-const generateQuestionDistribution = (
-  level: number,
-  totalQuestions: number = 10,
-  maxTheme: number = 50
-) => {
-  level = Math.max(1, Math.min(10, level));
+function generateQuestionDistribution(
+  currentLevel: number
+): QuestionDistribution[] {
+  // Ensure level is within bounds
+  const boundedLevel = Math.max(1, Math.min(50, currentLevel));
 
-  // Calculate the base theme for the student's level
-  const baseTheme = level;
+  const distribution: QuestionDistribution[] = [];
+  let remainingQuestions = 10; // Total questions needed
 
-  // Calculate theme range
-  const minTheme = Math.max(1, baseTheme - 3);
-  const maxReachableTheme = Math.min(maxTheme, baseTheme + 3);
+  // Distribution logic:
+  // 40% questions from current level
+  // 30% questions from one level below
+  // 30% questions from one level above
 
-  // Distribution strategy
-  const distribution: ThemeDistribution[] = [
-    // Easier themes (below student's level)
-    { theme: minTheme, questionCount: 1 },
-    { theme: Math.min(maxTheme, minTheme + 1), questionCount: 1 },
-
-    // Themes close to student's level
-    { theme: Math.max(1, baseTheme - 1), questionCount: 1 },
-    { theme: baseTheme, questionCount: 4 },
-    { theme: Math.min(baseTheme + 1), questionCount: 1 },
-
-    // Slightly challenging themes
-    { theme: Math.max(1, maxReachableTheme - 1), questionCount: 1 },
-    { theme: maxReachableTheme, questionCount: 1 },
-  ];
-
-  // Adjust if total questions don't match
-  const currentTotal = distribution.reduce(
-    (sum, item) => sum + item.questionCount,
-    0
-  );
-  if (currentTotal !== totalQuestions) {
-    // Distribute remaining or excess questions to the base theme
-    distribution.find((d) => d.theme === baseTheme)!.questionCount +=
-      totalQuestions - currentTotal;
+  if (boundedLevel > 1) {
+    // Questions from one level below
+    distribution.push({
+      theme: boundedLevel - 1,
+      questionCount: 3,
+    });
+    remainingQuestions -= 3;
   }
 
-  const groupedByTheme: ThemeDistribution[] = Object.values(
-    distribution.reduce<Record<number, ThemeDistribution>>((acc, item) => {
-      if (!acc[item.theme]) {
-        acc[item.theme] = {
-          theme: item.theme,
-          questionCount: 0,
-        };
-      }
-      acc[item.theme].questionCount += item.questionCount;
-      return acc;
-    }, {})
-  );
-  console.log(groupedByTheme);
+  // Questions from current level
+  distribution.push({
+    theme: boundedLevel,
+    questionCount: 4,
+  });
+  remainingQuestions -= 4;
 
-  return groupedByTheme;
+  if (boundedLevel < 50) {
+    // Questions from one level above
+    distribution.push({
+      theme: boundedLevel + 1,
+      questionCount: remainingQuestions,
+    });
+  } else {
+    // If at max level, add remaining questions to current level
+    distribution[distribution.length - 1].questionCount += remainingQuestions;
+  }
+
+  return distribution;
+}
+
+const isAllowedLetter = (key: string) => {
+  return /^[a-zA-Z]$/i.test(key);
 };
 
-export { calculateLevel, getMotivationPhrase, generateQuestionDistribution };
-export type { Question, LevelCalculationConfig, LevelCalculationResult };
+const getWrongWordsIndexes = (original: string, comparison: string) => {
+  const findWordIndexes = (text: string) => {
+    const indexes: { start: number; end: number }[] = [];
+    let count = 0;
+    let startIndex = 0;
+    let endIndex = 0;
+    [...text].map((c, index) => {
+      if (isAllowedLetter(c) && count === 0) {
+        startIndex = index;
+        count++;
+      } else if (!isAllowedLetter(c) && count === 1) {
+        endIndex = index - 1;
+        count++;
+      } else if (index === text.length - 1) {
+        endIndex = index;
+        count++;
+      }
+      if (count === 2) {
+        indexes.push({ start: startIndex, end: endIndex });
+        count = 0;
+      }
+    });
+
+    return indexes;
+  };
+
+  const indexes = findWordIndexes(original);
+  const wrongWords: WordDifference[] = [];
+
+  indexes.map(({ start, end }) => {
+    const originalWord = original.substring(start, end + 1);
+    const comparisonWord = comparison.substring(start, end + 1);
+
+    if (originalWord !== comparisonWord) {
+      wrongWords.push({ start, end });
+    }
+  });
+
+  return wrongWords;
+};
+
+function getWrongLettersIndexes(
+  referenceText: string,
+  input: string
+): number[] {
+  const wrongIndexes: number[] = [];
+  const referenceLength = referenceText.length;
+  const inputLength = input.length;
+
+  let refIndex = 0; // Index in the reference text
+  let inputIndex = 0; // Index in the input text
+
+  while (refIndex < referenceLength || inputIndex < inputLength) {
+    const refChar =
+      refIndex < referenceLength ? referenceText[refIndex] : undefined;
+    const inputChar = inputIndex < inputLength ? input[inputIndex] : undefined;
+
+    // If characters are different, or one is missing
+    if (refChar !== inputChar) {
+      // If the character in reference exists, push its index
+      if (refChar !== undefined) {
+        wrongIndexes.push(refIndex);
+      }
+    }
+
+    refIndex++;
+    inputIndex++;
+  }
+
+  return wrongIndexes;
+}
+
+export {
+  isAllowedLetter,
+  calculateLevel,
+  getMotivationPhrase,
+  generateQuestionDistribution,
+  getWrongWordsIndexes,
+  getWrongLettersIndexes,
+};
+export type { QuestionDistribution, AnswerResult, LevelCalculationResult, WordDifference };

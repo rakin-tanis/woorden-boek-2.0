@@ -1,16 +1,20 @@
+import { isAllowedLetter } from '@/lib/game';
+import { AppliedJoker } from '@/types';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 
 interface LetterInputProps {
   expectedAnswer: string;
-  onAnswerComplete: (answer: string) => void;
   questionStatus: 'playing' | 'success' | 'failed';
+  appliedJokers: AppliedJoker[]
+  onAnswerComplete: (answer: string) => void;
   onEnter: () => void
 }
 
 export const LetterInput: React.FC<LetterInputProps> = ({
   expectedAnswer,
-  onAnswerComplete,
   questionStatus,
+  appliedJokers,
+  onAnswerComplete,
   onEnter,
 }) => {
   const [userAnswer, setUserAnswer] = useState<string[]>([]);
@@ -20,7 +24,7 @@ export const LetterInput: React.FC<LetterInputProps> = ({
 
   // Prepare input fields based on expected answer
   useEffect(() => {
-    setUserAnswer(expectedAnswer.split('').map(c => !isAllowedLetter(c) ? c : ''));
+    setUserAnswer(expectedAnswer.split('').map(c => !isAllowedLetter(c) ? c : ' '));
     const firstAllowedInput = inputRefs.current.find((ref, index) => ref !== null && isAllowedLetter(expectedAnswer[index]));
 
     if (firstAllowedInput) {
@@ -88,12 +92,12 @@ export const LetterInput: React.FC<LetterInputProps> = ({
       if (key === 'Backspace') {
         if (questionStatus !== 'playing') return;
         const newAnswer = [...userAnswer];
-        if (userAnswer[focusedIndex] === '') {
+        if (userAnswer[focusedIndex] === ' ') {
           // If current input is empty, move to previous and delete
           focusPrevious();
         } else if (isAllowedLetter(expectedAnswer[focusedIndex])) {
           // Clear current input
-          newAnswer[focusedIndex] = '';
+          newAnswer[focusedIndex] = ' ';
         }
         setUserAnswer(newAnswer);
       }
@@ -154,6 +158,15 @@ export const LetterInput: React.FC<LetterInputProps> = ({
                 transition-all duration-300 ease-in-out
                 ${!isAllowedLetter(expectedAnswer[letterIndexCopy]) ? 'border-gray-800' : 'border-gray-600'} 
                 ${focusedIndex === index ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-300'}
+                ${appliedJokers?.map(aj => {
+                return aj.indexes.includes(letterIndexCopy)
+                  ? aj.name === 'revealWrongWords'
+                    ? 'bg-purple-600'
+                    : aj.name === "revealWrongLetters"
+                      ? "bg-yellow-600"
+                      : "bg-transparent"
+                  : "bg-transparent"
+              }).join(' ')}
                 ${questionStatus === 'success'
                   ? `text-black animate-turnAround`
                   : questionStatus === 'failed' && userAnswer[letterIndexCopy] !== expectedAnswer[letterIndexCopy].toLowerCase()
@@ -183,7 +196,3 @@ export const LetterInput: React.FC<LetterInputProps> = ({
   );
 
 };
-
-const isAllowedLetter = (key: string) => {
-  return /^[a-zA-Z]$/i.test(key)
-}

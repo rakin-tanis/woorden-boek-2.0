@@ -1,4 +1,4 @@
-import { Example } from "@/types";
+import { AppliedJoker, Example } from "@/types";
 import { LetterInput } from "./LetterInput";
 import { Button } from "../ui/Button";
 
@@ -6,6 +6,7 @@ interface GameQuestionProps {
   currentQuestion: Example;
   questionStatus: 'playing' | 'success' | 'failed';
   feedback: string[];
+  appliedJokers: AppliedJoker[]
   onAnswerComplete: (answer: string) => void;
   onShowAnswer: () => void;
   onNextQuestion: () => void;
@@ -15,6 +16,7 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
   currentQuestion,
   questionStatus,
   feedback,
+  appliedJokers,
   onAnswerComplete,
   onShowAnswer,
   onNextQuestion
@@ -29,8 +31,9 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
 
     <LetterInput
       expectedAnswer={currentQuestion.dutch}
-      onAnswerComplete={onAnswerComplete}
       questionStatus={questionStatus}
+      appliedJokers={appliedJokers}
+      onAnswerComplete={onAnswerComplete}
       onEnter={questionStatus === 'playing' ? onShowAnswer : onNextQuestion}
     />
 
