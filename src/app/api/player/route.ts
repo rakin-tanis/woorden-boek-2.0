@@ -56,6 +56,7 @@ export async function PUT(req: NextRequest) {
           userId: session.user.id,
           name: player.name,
           level: player.level,
+          score: player.score,
         },
       },
       { upsert: true }

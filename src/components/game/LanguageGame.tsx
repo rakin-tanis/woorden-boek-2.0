@@ -26,9 +26,14 @@ const LanguageGame: React.FC = () => {
   const fetchGameExamples = useCallback(async (level?: string) => {
     try {
       // Only fetch if session is loaded
-      if (sessionStatus === 'loading'
-        || gameState.gameStatus === 'finished'
-        || gameState.gameStatus === 'playing') return;
+      if (sessionStatus === 'loading') {
+        console.log('session loading, cannot fetch examples');
+        return;
+      }
+      if (gameState.gameStatus === 'finished' || gameState.gameStatus === 'playing') {
+        console.log(`gameStatus is ${gameState.gameStatus}, cannot fetch examples`);
+        return;
+      }
 
       const examples = await fetchExamples(level);
 
@@ -40,13 +45,17 @@ const LanguageGame: React.FC = () => {
           gameStatus: 'playing'
         }));
       } else {
-        throw new Error('No examples found');
+        console.log('No examples found');
+        setGameState(state => ({
+          ...state,
+          gameStatus: 'finished'
+        }));
       }
     } catch (error) {
       console.error('Error fetching game examples:', error);
       setGameState(state => ({ ...state, gameStatus: 'finished' }));
     }
-  }, [gameState.gameStatus, sessionStatus, fetchExamples, setGameState])
+  }, [sessionStatus, fetchExamples])
 
   // Fetch player details function
   const fetchPlayerDetails = useCallback(async () => {
@@ -63,14 +72,12 @@ const LanguageGame: React.FC = () => {
           level: playerDetails.level.toString() || '',
           score: playerDetails.score || 0
         }));
-        console.log(gameState)
-        console.log(playerDetails.level.toString(), playerDetails.score)
         return playerDetails.level;
       }
     } catch (error) {
       console.error('Error fetching player details:', error);
     }
-  }, [sessionStatus, fetchPlayer, setGameState]);
+  }, [sessionStatus]);
 
   // Initial fetch effect
   useEffect(() => {
@@ -89,45 +96,60 @@ const LanguageGame: React.FC = () => {
     };
 
     fetchData();
-  }, [sessionStatus, fetchPlayerDetails, fetchGameExamples]);
+  }, [sessionStatus]);
 
   // Update player details when the game is finished
   useEffect(() => {
+    let isMounted = true;
     const updatePlayerDetails = async () => {
-      if (gameState.gameStatus === 'finished') {
-        await updatePlayer({
-          level: Number(gameState.level),
-          score: gameState.score
-        });
-      }
-    };
+      if (gameState.gameStatus === 'finished' && isMounted) {
+        try {
+          await updatePlayer({
+            level: Number(gameState.level),
+            score: gameState.score
+          });
+        } catch (error) {
+          console.error('Error updating player details:', error);
+        }
+      };
+    }
 
     updatePlayerDetails();
-  }, [gameState.gameStatus, gameState.level, updatePlayer]);
+    return () => {
+      isMounted = false;
+    };
+  }, [gameState.gameStatus, gameState.level, gameState.score]);
 
 
   // Handler for play again
-  const handlePlayAgain = () => {
-    setGameState(prevState => ({
-      ...prevState,
-      examples: [],
-      userAnswer: '',
-      currentQuestionIndex: 0,
-      currentQuestion: null,
-      streak: 0,
-      timeRemaining: 60,
-      gameStatus: 'loading',
-      report: [],
-      feedback: [],
-      progress: 0,
-      isAnswerSubmitted: false,
-      questionStatus: 'playing',
-      isTimerRunning: true,
-      isShaking: false,
-    }));
+  const handlePlayAgain = useCallback(async () => {
+    setGameState(prevState => {
+      return ({
+        ...prevState,
+        examples: [],
+        userAnswer: '',
+        currentQuestionIndex: 0,
+        currentQuestion: null,
+        streak: 0,
+        timeRemaining: 60,
+        gameStatus: 'loading',
+        report: [],
+        feedback: [],
+        progress: 0,
+        isAnswerSubmitted: false,
+        questionStatus: 'playing',
+        isTimerRunning: true,
+        isShaking: false,
+      })
+    });
 
-    fetchGameExamples(gameState.level);
-  };
+    try {
+      await fetchGameExamples(gameState.level);
+    } catch (error) {
+      console.error('Error fetching game examples:', error);
+      setGameState(state => ({ ...state, gameStatus: 'finished' }));
+    }
+  }, [fetchGameExamples, gameState.level]);
 
 
   // Loading state
