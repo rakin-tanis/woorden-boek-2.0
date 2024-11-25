@@ -20,7 +20,7 @@ const LanguageGame: React.FC = () => {
   const { fetchGameExamples: fetchExamples } = useGameExamplesFetch();
   const { fetchPlayerDetails: fetchPlayer, updatePlayerDetails: updatePlayer } = usePlayerFetch();
 
-  const { jokers, /* reset: resetJokers */ } = useJokers(setGameState);
+  const { jokers, reset: resetJokers, jokerEffects, resetEffects } = useJokers();
 
   // Fetch game examples
   const fetchGameExamples = useCallback(async (level?: string) => {
@@ -121,19 +121,18 @@ const LanguageGame: React.FC = () => {
     };
   }, [gameState.gameStatus, gameState.level, gameState.score]);
 
-  /* useEffect(() => {
-    const nextIndex = gameState.currentQuestionIndex + 1;
-    const isFinished = nextIndex === gameState.examples.length;
-    if (isFinished) {
-      requestAnimationFrame(() => {
-        resetJokers();
-      });
-    }
-  }, [gameState.currentQuestionIndex, gameState.examples, resetJokers]); */
+  const goToNextQuestion = () => {
+    resetEffects()
+    nextQuestion()
+  }
 
   // Handler for play again
   const handlePlayAgain = useCallback(async () => {
+    // Reset game state
     reset({ score: gameState.score })
+
+    // Reset jokers
+    resetJokers();
 
     try {
       await fetchGameExamples(gameState.level);
@@ -141,7 +140,7 @@ const LanguageGame: React.FC = () => {
       console.error('Error fetching game examples:', error);
       setGameState(state => ({ ...state, gameStatus: 'finished' }));
     }
-  }, [fetchGameExamples, gameState.level]);
+  }, [fetchGameExamples, gameState.level, reset, resetJokers]);
 
   // Loading state
   if (sessionStatus === 'loading' || gameState.gameStatus === 'loading') {
@@ -162,7 +161,7 @@ const LanguageGame: React.FC = () => {
 
 
   return (
-    <Card className={`max-w-2xl mx-auto p-6 space-y-6 bg-white dark:bg-gray-950 ${gameState.isShaking ? 'animate-shake' : ''}`}>
+    <Card className={`max-w-2xl mx-auto p-6 space-y-6 bg-white dark:bg-gray-950 ${jokerEffects.filter(j => j.name === 'shaking')[0] ? 'animate-shake' : ''}`}>
 
       {/* Jokers */}
       <div className="flex space-x-4 h-12">
@@ -180,7 +179,7 @@ const LanguageGame: React.FC = () => {
                   joker.action(gameState)
               }}
               count={joker.count ?? 0}
-              disabled={joker.disabled}
+              disabled={joker.count === 0 || gameState.questionStatus !== 'playing'}
               variant={joker.variant}
               animationVariant={joker.animationVariant}
             >
@@ -204,12 +203,12 @@ const LanguageGame: React.FC = () => {
           currentQuestion={gameState.currentQuestion}
           questionStatus={gameState.questionStatus}
           feedback={gameState.feedback}
-          appliedJokers={gameState.appliedJokers}
+          appliedJokers={jokerEffects}
           onAnswerComplete={(answer) =>
             setGameState(state => ({ ...state, userAnswer: answer }))
           }
           onShowAnswer={() => showAnswer()}
-          onNextQuestion={() => nextQuestion()}
+          onNextQuestion={() => goToNextQuestion()}
         />
       )}
 

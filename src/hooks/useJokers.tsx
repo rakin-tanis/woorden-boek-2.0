@@ -1,7 +1,7 @@
 // hooks/useJokers.ts
 import { Joker } from '@/types';
 import { Eye, Shield, Zap } from 'lucide-react';
-import { useState, useCallback, Dispatch, SetStateAction } from 'react';
+import { useState, useCallback } from 'react';
 import { GameState } from './useGameLogic';
 import { getWrongLettersIndexes, getWrongWordsIndexes } from '@/lib/game';
 
@@ -11,7 +11,7 @@ interface JokersState {
   defender: Joker;
 }
 
-export const useJokers = (setGameState: Dispatch<SetStateAction<GameState>>) => {
+export const useJokers = () => {
 
   const initialState = {
     hint: {
@@ -52,6 +52,8 @@ export const useJokers = (setGameState: Dispatch<SetStateAction<GameState>>) => 
 
   const [jokers, setJokers] = useState<JokersState>(initialState);
 
+  const [jokerEffects, setJokerEffects] = useState<{ name: string, indexes: number[] }[]>([])
+
   const revealWrongLetters = (gameState: GameState) => {
     if (gameState.isAnswerSubmitted || jokers.hint.count < 1) return;
 
@@ -60,13 +62,10 @@ export const useJokers = (setGameState: Dispatch<SetStateAction<GameState>>) => 
 
     const indexes = getWrongLettersIndexes(question!, input)
 
-    setGameState((prevGameState) => ({
-      ...prevGameState,
-      appliedJokers: [
-        ...prevGameState.appliedJokers.filter(j => j.name !== 'revealWrongLetters'),
-        { name: "revealWrongLetters", indexes }
-      ],
-    }))
+    setJokerEffects((prevEffects) => ([
+      ...prevEffects.filter(j => j.name !== 'revealWrongLetters'),
+      { name: "revealWrongLetters", indexes }
+    ]))
 
     setJokers(prev => ({
       ...prev,
@@ -92,13 +91,10 @@ export const useJokers = (setGameState: Dispatch<SetStateAction<GameState>>) => 
         return idx;
       }).flat()
 
-    setGameState((prevGameState) => ({
-      ...prevGameState,
-      appliedJokers: [
-        ...prevGameState.appliedJokers.filter(j => j.name !== 'revealWrongWords'),
-        { name: "revealWrongWords", indexes }
-      ],
-    }))
+    setJokerEffects((prevEffects) => ([
+      ...prevEffects.filter(j => j.name !== 'revealWrongWords'),
+      { name: "revealWrongWords", indexes }
+    ]))
 
     setJokers(prev => ({
       ...prev,
@@ -122,9 +118,14 @@ export const useJokers = (setGameState: Dispatch<SetStateAction<GameState>>) => 
     if (isCorrect) {
       showAnswer();
     } else {
-      setGameState((state: GameState) => ({ ...state, isShaking: true }));
+      setJokerEffects((prevEffects) => ([
+        ...prevEffects.filter(j => j.name !== 'shaking'),
+        { name: "shaking", indexes: [] }
+      ]))
       setTimeout(() => {
-        setGameState((state: GameState) => ({ ...state, isShaking: false }));
+        setJokerEffects((prevEffects) => ([
+          ...prevEffects.filter(j => j.name !== 'shaking'),
+        ]))
       }, 500);
     }
 
@@ -137,9 +138,17 @@ export const useJokers = (setGameState: Dispatch<SetStateAction<GameState>>) => 
     }));
   }, []);
 
+  const resetEffects = () => {
+    console.log('resetEffects')
+    setJokerEffects([]);
+  }
 
-  const reset = () => setJokers(prev => ({ ...prev, initialState }))
+  const reset = useCallback(() => {
+    console.log('Resetting jokers')
+    setJokers(initialState);
+    setJokerEffects([]);
+  }, []);
 
 
-  return { jokers, setJokers, reset };
+  return { jokers, setJokers, reset, resetEffects, jokerEffects, setJokerEffects };
 };

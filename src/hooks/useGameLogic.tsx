@@ -23,8 +23,7 @@ export interface GameState {
   isAnswerSubmitted: boolean;
   questionStatus: 'playing' | 'success' | 'failed'
   isTimerRunning: boolean;
-  isShaking: boolean;
-  appliedJokers: { name: string, indexes: number[] }[]
+  
 }
 
 const initialState = {
@@ -43,8 +42,6 @@ const initialState = {
   isAnswerSubmitted: false,
   questionStatus: 'playing' as 'playing' | 'success' | 'failed',
   isTimerRunning: false,
-  isShaking: false,
-  appliedJokers: [] as { name: string, indexes: number[] }[]
 }
 
 export const useGameLogic = () => {
@@ -98,7 +95,6 @@ export const useGameLogic = () => {
         isAnswerSubmitted: false,
         isTimerRunning: !isFinished,
         gameStatus: isFinished ? 'finished' : prevState.gameStatus,
-        appliedJokers: [] as { name: string, indexes: number[] }[],
         level: isFinished
           ? `${calculateLevel(prevState.report.map(r => ({
             themeLevel: Number(r.example.theme),
