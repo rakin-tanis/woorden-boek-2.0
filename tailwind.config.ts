@@ -15,6 +15,10 @@ export default {
         popover: "hsl(var(--popover))",
         "popover-foreground": "hsl(var(--popover-foreground))",
       },
+      scrollPadding: {
+        "24": "6rem",
+        "36": "9rem",
+      },
       keyframes: {
         shake: {
           "0%, 100%": { transform: "translateX(0)" },

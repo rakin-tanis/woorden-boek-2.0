@@ -1,6 +1,8 @@
 import { isAllowedLetter } from '@/lib/game';
 import { AppliedJoker } from '@/types';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { OnScreenKeyboard } from './OnScreenKeyboard';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface LetterInputProps {
   expectedAnswer: string;
@@ -17,14 +19,12 @@ export const LetterInput: React.FC<LetterInputProps> = ({
   onAnswerComplete,
   onEnter,
 }) => {
+  const isMobile = useIsMobile();
   const [userAnswer, setUserAnswer] = useState<string[]>([]);
   const [focusedIndex, setFocusedIndex] = useState<number>(0);
   const inputRefs = useRef<(HTMLDivElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
-  const hiddenInputRef = useRef<HTMLInputElement>(null);
 
-  // Hidden input for mobile keyboard trigger
-  const [hiddenInputValue, setHiddenInputValue] = useState('');
 
   // Prepare input fields based on expected answer
   useEffect(() => {
@@ -37,60 +37,75 @@ export const LetterInput: React.FC<LetterInputProps> = ({
     }
   }, [expectedAnswer]);
 
-  // Mobile-friendly focus handling
-  useEffect(() => {
-    const currentRef = inputRefs.current[focusedIndex];
-
-    const handleFocus = () => {
-      // Scroll input into view
-      currentRef?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
-      });
-
-      // Trigger hidden input for mobile keyboard
-      if (hiddenInputRef.current) {
-        hiddenInputRef.current.focus();
-      }
-    }
-
-    if (currentRef) {
-      currentRef.addEventListener('focus', handleFocus);
-      currentRef.addEventListener('click', handleFocus);
-    }
-
-    return () => {
-      if (currentRef) {
-        currentRef.removeEventListener('focus', handleFocus);
-        currentRef.removeEventListener('click', handleFocus);
-      }
-    }
-  }, [focusedIndex]);
-
   // Check if answer is complete
   useEffect(() => {
     onAnswerComplete(userAnswer.join(''));
   }, [userAnswer]);
 
-  // Hidden input change handler
-  const handleHiddenInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const input = e.target.value;
+  const handleKeyPress = useCallback((key: string) => {
+    if (questionStatus !== 'playing') return;
 
-    // If input is a single letter and current input is allowed
-    if (input.length === 1 && /^[a-zA-Z]$/i.test(input) && isAllowedLetter(expectedAnswer[focusedIndex])) {
-      if (questionStatus !== 'playing') return;
+    // Find next valid input index
+    const findNextValidIndex = (startIndex: number) => {
+      let index = startIndex;
+      while (index < expectedAnswer.length) {
+        if (isAllowedLetter(expectedAnswer[index])) {
+          return index;
+        }
+        index++;
+      }
+      return startIndex;
+    };
 
-      const newAnswer = [...userAnswer];
-      newAnswer[focusedIndex] = input.toLowerCase();
-      setUserAnswer(newAnswer);
+    setUserAnswer(prevAnswer => {
+      const newAnswer = [...prevAnswer];
+      const currentIndex = findNextValidIndex(focusedIndex);
 
-      // Reset hidden input
-      setHiddenInputValue('');
+      if (isAllowedLetter(expectedAnswer[currentIndex])) {
+        newAnswer[currentIndex] = key.toLowerCase();
 
-      // Move to next input
-      focusNext();
+        // Move to next input
+        setFocusedIndex(() => {
+          const nextIndex = findNextValidIndex(currentIndex + 1);
+          inputRefs.current[nextIndex]?.focus();
+          return nextIndex;
+        });
+      }
+
+      return newAnswer;
+    });
+  }, [expectedAnswer, focusedIndex, questionStatus]);
+
+  const findPreviousValidIndex = useCallback((startIndex: number) => {
+    let index = startIndex;
+    while (index >= 0) {
+      if (isAllowedLetter(expectedAnswer[index])) {
+        return index;
+      }
+      index--;
     }
-  };
+    return startIndex;
+  }, [expectedAnswer]);
+
+  const handleBackspace = useCallback(() => {
+    if (questionStatus !== 'playing') return;
+
+    setUserAnswer(prevAnswer => {
+      const newAnswer = [...prevAnswer];
+
+      // If current input is empty, move to previous
+      if (newAnswer[focusedIndex] === ' ') {
+        const prevIndex = findPreviousValidIndex(focusedIndex);
+        setFocusedIndex(prevIndex);
+        inputRefs.current[prevIndex]?.focus();
+      } else if (isAllowedLetter(expectedAnswer[focusedIndex])) {
+        // Clear current input
+        newAnswer[focusedIndex] = ' ';
+      }
+
+      return newAnswer;
+    });
+  }, [expectedAnswer, focusedIndex, questionStatus, findPreviousValidIndex]);
 
   const focusNext = useCallback(() => {
     let index = focusedIndex;
@@ -102,6 +117,7 @@ export const LetterInput: React.FC<LetterInputProps> = ({
     } while (!isAllowedLetter(expectedAnswer[index]))
     setFocusedIndex(index);
     inputRefs.current[index]?.focus();
+    // hiddenInputRef.current?.focus();
   }, [expectedAnswer, focusedIndex])
 
   const focusPrevious = useCallback(() => {
@@ -181,20 +197,6 @@ export const LetterInput: React.FC<LetterInputProps> = ({
 
   return (
     <>
-      {/* Hidden input for mobile keyboard */}
-      <input
-        ref={hiddenInputRef}
-        type="text"
-        style={{
-          position: 'absolute',
-          top: '-1000px',
-          left: '-1000px'
-        }}
-        value={hiddenInputValue}
-        onChange={handleHiddenInputChange}
-        autoFocus
-      />
-
       <div
         ref={containerRef}
         tabIndex={0}
@@ -213,10 +215,6 @@ export const LetterInput: React.FC<LetterInputProps> = ({
                 tabIndex={letterIndex}
                 onClick={() => {
                   setFocusedIndex(index);
-                  // Trigger hidden input for mobile
-                  if (hiddenInputRef.current) {
-                    hiddenInputRef.current.focus();
-                  }
                 }}
                 style={{
                   ...(questionStatus === 'success' && {
@@ -261,6 +259,12 @@ export const LetterInput: React.FC<LetterInputProps> = ({
           );
         })}
       </div>
+      {/* Add the on-screen keyboard */}
+      {isMobile && <OnScreenKeyboard
+        onKeyPress={handleKeyPress}
+        onBackspace={handleBackspace}
+        onEnter={onEnter}
+      />}
     </>
   );
 }

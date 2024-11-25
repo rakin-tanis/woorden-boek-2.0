@@ -161,7 +161,18 @@ const LanguageGame: React.FC = () => {
 
 
   return (
-    <Card className={`max-w-2xl mx-auto p-6 space-y-6 bg-white dark:bg-gray-950 ${jokerEffects.filter(j => j.name === 'shaking')[0] ? 'animate-shake' : ''}`}>
+    <Card
+      className={`
+          w-full
+          max-w-2xl 
+          mx-auto 
+          p-6 
+          space-y-6 
+          bg-white 
+          dark:bg-gray-950 
+          ${jokerEffects.filter(j => j.name === 'shaking')[0] ? 'animate-shake' : ''}
+          `}
+    >
 
       {/* Jokers */}
       <div className="flex space-x-4 h-12">
@@ -213,6 +224,7 @@ const LanguageGame: React.FC = () => {
       )}
 
     </Card>
+
   );
 
 };
