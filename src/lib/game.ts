@@ -120,10 +120,7 @@ const motivationPhrases = [
   },
 ];
 
-function calculateLevel(
-  answers: AnswerResult[],
-  currentLevel = 1
-): number {
+function calculateLevel(answers: AnswerResult[], currentLevel = 1): number {
   // Weights for different theme levels relative to player's current level
   const getQuestionWeight = (themeLevel: number): number => {
     const levelDiff = themeLevel - currentLevel;
@@ -147,7 +144,7 @@ function calculateLevel(
   // Calculate level change based on performance
   if (performanceScore >= 0.8) {
     // Excellent performance: gain 1-2 levels
-    return Math.min(50, currentLevel + (performanceScore >= 0.9 ? 2 : 1));
+    return Math.min(50, currentLevel + 1);
   } else if (performanceScore >= 0.6) {
     // Good performance: stay at current level
     return currentLevel;
@@ -292,4 +289,9 @@ export {
   getWrongWordsIndexes,
   getWrongLettersIndexes,
 };
-export type { QuestionDistribution, AnswerResult, LevelCalculationResult, WordDifference };
+export type {
+  QuestionDistribution,
+  AnswerResult,
+  LevelCalculationResult,
+  WordDifference,
+};
