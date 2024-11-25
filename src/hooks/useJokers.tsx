@@ -18,7 +18,7 @@ export const useJokers = () => {
       order: 1,
       name: 'hint',
       action: (gameState: GameState) => revealWrongLetters(gameState),
-      count: 10,
+      count: 3,
       disabled: false,
       variant: 'yellow' as "yellow" | "purple" | "lime" | "blue",
       animationVariant: 'bubbly' as "bubbly",
@@ -28,7 +28,7 @@ export const useJokers = () => {
       order: 2,
       name: 'Oog',
       action: (gameState: GameState) => revealWrongWords(gameState),
-      count: 10,
+      count: 3,
       disabled: false,
       variant: 'purple' as "yellow" | "purple" | "lime" | "blue",
       animationVariant: 'bubbly' as "bubbly",
@@ -42,7 +42,7 @@ export const useJokers = () => {
         const showAnswer = params[0] as (message?: string) => void;
         return checkAnswer(gameState, showAnswer);
       },
-      count: 10,
+      count: 3,
       disabled: false,
       variant: 'lime' as "yellow" | "purple" | "lime" | "blue",
       animationVariant: 'bubbly' as "bubbly",
