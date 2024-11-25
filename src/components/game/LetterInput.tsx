@@ -45,67 +45,26 @@ export const LetterInput: React.FC<LetterInputProps> = ({
   const handleKeyPress = useCallback((key: string) => {
     if (questionStatus !== 'playing') return;
 
-    // Find next valid input index
-    const findNextValidIndex = (startIndex: number) => {
-      let index = startIndex;
-      while (index < expectedAnswer.length) {
-        if (isAllowedLetter(expectedAnswer[index])) {
-          return index;
-        }
-        index++;
-      }
-      return startIndex;
-    };
+    // Allow only single alphabetic characters
+    if (key.length === 1 && /^[a-zA-Z]$/i.test(key) && isAllowedLetter(expectedAnswer[focusedIndex])) {
+      const newAnswer = [...userAnswer];
+      newAnswer[focusedIndex] = key.toLowerCase();
 
-    setUserAnswer(prevAnswer => {
-      const newAnswer = [...prevAnswer];
-      const currentIndex = findNextValidIndex(focusedIndex);
-
-      if (isAllowedLetter(expectedAnswer[currentIndex])) {
-        newAnswer[currentIndex] = key.toLowerCase();
-
-        // Move to next input
-        setFocusedIndex(() => {
-          const nextIndex = findNextValidIndex(currentIndex + 1);
-          inputRefs.current[nextIndex]?.focus();
-          return nextIndex;
-        });
-      }
-
-      return newAnswer;
-    });
-  }, [expectedAnswer, focusedIndex, questionStatus]);
-
-  const findPreviousValidIndex = useCallback((startIndex: number) => {
-    let index = startIndex;
-    while (index >= 0) {
-      if (isAllowedLetter(expectedAnswer[index])) {
-        return index;
-      }
-      index--;
+      setUserAnswer(newAnswer);
+      focusNext()
     }
-    return startIndex;
-  }, [expectedAnswer]);
+  }, [expectedAnswer, focusedIndex, questionStatus, userAnswer]);
 
   const handleBackspace = useCallback(() => {
     if (questionStatus !== 'playing') return;
-
-    setUserAnswer(prevAnswer => {
-      const newAnswer = [...prevAnswer];
-
-      // If current input is empty, move to previous
-      if (newAnswer[focusedIndex] === ' ') {
-        const prevIndex = findPreviousValidIndex(focusedIndex);
-        setFocusedIndex(prevIndex);
-        inputRefs.current[prevIndex]?.focus();
-      } else if (isAllowedLetter(expectedAnswer[focusedIndex])) {
-        // Clear current input
-        newAnswer[focusedIndex] = ' ';
-      }
-
-      return newAnswer;
-    });
-  }, [expectedAnswer, focusedIndex, questionStatus, findPreviousValidIndex]);
+    const newAnswer = [...userAnswer];
+    if (userAnswer[focusedIndex] === ' ') {
+      focusPrevious();
+    } else if (isAllowedLetter(expectedAnswer[focusedIndex])) {
+      newAnswer[focusedIndex] = ' ';
+    }
+    setUserAnswer(newAnswer);
+  }, [expectedAnswer, focusedIndex, questionStatus, userAnswer]);
 
   const focusNext = useCallback(() => {
     let index = focusedIndex;
@@ -128,7 +87,6 @@ export const LetterInput: React.FC<LetterInputProps> = ({
       }
       index--
     } while (!isAllowedLetter(expectedAnswer[index]))
-
     setFocusedIndex(index);
     inputRefs.current[index]?.focus();
   }, [expectedAnswer, focusedIndex])
@@ -141,13 +99,7 @@ export const LetterInput: React.FC<LetterInputProps> = ({
 
       const key = e.key;
       // Allow only single alphabetic characters
-      if (key.length === 1 && /^[a-zA-Z]$/i.test(key) && isAllowedLetter(expectedAnswer[focusedIndex])) {
-        if (questionStatus !== 'playing') return;
-        const newAnswer = [...userAnswer];
-        newAnswer[focusedIndex] = key.toLowerCase();
-        setUserAnswer(newAnswer);
-        focusNext()
-      }
+      handleKeyPress(key)
 
       // Handle navigation and deletion
       if (key === 'ArrowRight') {
@@ -158,16 +110,7 @@ export const LetterInput: React.FC<LetterInputProps> = ({
 
       // Handle backspace
       if (key === 'Backspace') {
-        if (questionStatus !== 'playing') return;
-        const newAnswer = [...userAnswer];
-        if (userAnswer[focusedIndex] === ' ') {
-          // If current input is empty, move to previous and delete
-          focusPrevious();
-        } else if (isAllowedLetter(expectedAnswer[focusedIndex])) {
-          // Clear current input
-          newAnswer[focusedIndex] = ' ';
-        }
-        setUserAnswer(newAnswer);
+        handleBackspace()
       }
 
       if (key === "Enter") {
