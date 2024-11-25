@@ -129,7 +129,7 @@ const LanguageGame: React.FC = () => {
   // Handler for play again
   const handlePlayAgain = useCallback(async () => {
     // Reset game state
-    reset({ score: gameState.score })
+    reset({ level: gameState.level, score: gameState.score })
 
     // Reset jokers
     resetJokers();

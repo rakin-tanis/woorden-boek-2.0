@@ -18,7 +18,17 @@ export async function GET() {
     });
 
     if (!player) {
-      return NextResponse.json({ error: "Player not found" }, { status: 404 });
+      return NextResponse.json(
+        {
+          player: {
+            userId: session.user.id,
+            name: session.user.name,
+            level: 1,
+            score: 0,
+          },
+        },
+        { status: 200 }
+      );
     }
     return NextResponse.json({ player }, { status: 200 });
   } catch (error) {
@@ -61,8 +71,6 @@ export async function PUT(req: NextRequest) {
       },
       { upsert: true }
     );
-
-    session.user.level = body.level;
 
     return NextResponse.json(
       {
