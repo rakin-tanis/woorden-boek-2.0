@@ -143,7 +143,7 @@ export const LetterInput: React.FC<LetterInputProps> = ({
       <div
         ref={containerRef}
         tabIndex={0}
-        className="flex flex-wrap gap-y-6 gap-x-14 justify-start items-start outline-none w-fit"
+        className="flex flex-wrap gap-y-6 gap-x-14 justify-start items-start outline-none w-full"
       >
         {originalWords.map((word, wordIndex) => {
           const wordLetters = word.split('');
@@ -165,7 +165,7 @@ export const LetterInput: React.FC<LetterInputProps> = ({
                   }),
                   animationFillMode: 'forwards'
                 }}
-                className={`relative w-10 h-12 border rounded flex items-center justify-center
+                className={`relative flex-1 min-w-[2rem] h-12 border rounded flex items-center justify-center
                   transition-all duration-300 ease-in-out
                   ${!isAllowedLetter(expectedAnswer[letterIndexCopy]) ? 'border-gray-800' : 'border-gray-600'} 
                   ${focusedIndex === index ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-300'}
