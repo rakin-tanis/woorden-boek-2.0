@@ -23,7 +23,7 @@ export interface GameState {
   isAnswerSubmitted: boolean;
   questionStatus: 'playing' | 'success' | 'failed'
   isTimerRunning: boolean;
-  
+
 }
 
 const initialState = {
@@ -109,6 +109,15 @@ export const useGameLogic = () => {
     setGameState({ ...initialState, ...exclude })
   }, [])
 
+  const addExtraTime = useCallback((seconds: number) => {
+    setGameState(prevState => {
+      return {
+        ...prevState,
+        timeRemaining: prevState.timeRemaining + seconds
+      }
+    })
+  }, [])
+
   // Timer effect
   useEffect(() => {
     if (gameState.gameStatus !== 'playing' || !gameState.isTimerRunning) return;
@@ -132,6 +141,7 @@ export const useGameLogic = () => {
     setGameState,
     showAnswer,
     nextQuestion,
-    reset
+    reset,
+    addExtraTime
   };
 };

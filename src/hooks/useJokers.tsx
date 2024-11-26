@@ -1,5 +1,4 @@
-// hooks/useJokers.ts
-import { Eye, LucideIcon, Shield, Zap } from 'lucide-react';
+import { Clock, LucideIcon, Shield, ShieldCheck, ShieldHalf } from 'lucide-react';
 import { useState, useCallback } from 'react';
 import { GameState } from './useGameLogic';
 import { getRandomSelections, getWrongLettersIndexes, getWrongWordsIndexes, groupBy } from '@/lib/game';
@@ -7,6 +6,8 @@ import { JokerWinAnimation } from '@/components/game/joker/JokerWinAnimation';
 import { AnimatePresence } from 'framer-motion';
 import { JokerButtonVariantType } from '@/components/game/joker/jokerVariants';
 
+const jokerTypes = ['showWrongLetter', 'showWrongWords', 'answerIfNotWrong', 'time'] as const;
+type jokerType = typeof jokerTypes[number]
 export interface Joker {
   order: number;
   name: string;
@@ -18,10 +19,8 @@ export interface Joker {
   icon: LucideIcon;
 }
 
-interface JokersState {
-  hint: Joker;
-  eye: Joker;
-  defender: Joker;
+type JokersState = {
+  [key in jokerType]: Joker;
 }
 
 interface NewJoker {
@@ -31,12 +30,10 @@ interface NewJoker {
   variant: JokerButtonVariantType
 }
 
-type jokerType = 'hint' | 'eye' | 'defender'
-
 export const useJokers = () => {
 
   const initialState: JokersState = {
-    hint: {
+    showWrongLetter: {
       order: 1,
       name: 'hint',
       action: (gameState: GameState, ...params: unknown[]) => {
@@ -48,9 +45,9 @@ export const useJokers = () => {
       disabled: false,
       variant: 'yellow',
       animationVariant: 'bubbly' as "bubbly",
-      icon: Zap
+      icon: ShieldCheck
     },
-    eye: {
+    showWrongWords: {
       order: 2,
       name: 'Oog',
       action: (gameState: GameState, ...params: unknown[]) => {
@@ -62,9 +59,9 @@ export const useJokers = () => {
       disabled: false,
       variant: 'purple',
       animationVariant: 'bubbly' as "bubbly",
-      icon: Eye
+      icon: ShieldHalf
     },
-    defender: {
+    answerIfNotWrong: {
       order: 3,
       name: 'Beschermer',
       action: (gameState: GameState, ...params: unknown[]) => {
@@ -78,6 +75,20 @@ export const useJokers = () => {
       animationVariant: 'bubbly' as "bubbly",
       icon: Shield
     },
+    time: {
+      order: 4,
+      name: 'clock',
+      action: (_, ...params: unknown[]) => {
+        // Ensure the first param is a function that matches the showAnswer signature
+        const addExtraTime = params[0] as (seconds: number) => void;
+        return addTime(addExtraTime);
+      },
+      count: 1,
+      disabled: false,
+      variant: 'blue',
+      animationVariant: 'bubbly' as "bubbly",
+      icon: Clock
+    }
   }
 
   const [jokers, setJokers] = useState<JokersState>(initialState);
@@ -86,7 +97,7 @@ export const useJokers = () => {
   const [jokerEffects, setJokerEffects] = useState<{ name: string, indexes: number[] }[]>([])
 
   const revealWrongLetters = (gameState: GameState, showAnswer: (message?: string) => void) => {
-    if (gameState.isAnswerSubmitted || jokers.hint.count < 1) return;
+    if (gameState.isAnswerSubmitted || jokers.showWrongLetter.count < 1) return;
 
     const input = gameState.userAnswer.toLowerCase();
     const question = gameState.currentQuestion?.dutch.toLowerCase();
@@ -104,15 +115,15 @@ export const useJokers = () => {
 
     setJokers(prev => ({
       ...prev,
-      hint: {
-        ...prev.hint,
-        count: prev.hint.count - 1,
+      showWrongLetter: {
+        ...prev.showWrongLetter,
+        count: prev.showWrongLetter.count - 1,
       }
     }));
   };
 
   const revealWrongWords = (gameState: GameState, showAnswer: (message?: string) => void) => {
-    if (gameState.isAnswerSubmitted || jokers.eye.count < 1) return;
+    if (gameState.isAnswerSubmitted || jokers.showWrongWords.count < 1) return;
 
     const input = gameState.userAnswer.toLowerCase();
     const question = gameState.currentQuestion?.dutch.toLowerCase();
@@ -138,9 +149,9 @@ export const useJokers = () => {
 
     setJokers(prev => ({
       ...prev,
-      eye: {
-        ...prev.eye,
-        count: prev.eye.count - 1,
+      showWrongWords: {
+        ...prev.showWrongWords,
+        count: prev.showWrongWords.count - 1,
       }
     }));
   };
@@ -149,7 +160,7 @@ export const useJokers = () => {
     gameState: GameState,
     showAnswer: (message?: string) => void,
   ) => {
-    if (gameState.isAnswerSubmitted || jokers.defender.count < 1) return;
+    if (gameState.isAnswerSubmitted || jokers.answerIfNotWrong.count < 1) return;
 
     const cleanedInput = gameState.userAnswer.toLowerCase().trim();
     const cleanedCorrect = gameState.currentQuestion?.dutch.toLowerCase().trim();
@@ -171,12 +182,25 @@ export const useJokers = () => {
 
     setJokers(prev => ({
       ...prev,
-      defender: {
-        ...prev.defender,
-        count: prev.defender.count - 1,
+      answerIfNotWrong: {
+        ...prev.answerIfNotWrong,
+        count: prev.answerIfNotWrong.count - 1,
       }
     }));
   }, []);
+
+  const addTime = useCallback((addExtraTime: (seconds: number) => void) => {
+    console.log('add 15 seconds')
+    addExtraTime(15)
+
+    setJokers(prev => ({
+      ...prev,
+      time: {
+        ...prev.time,
+        count: prev.time.count - 1,
+      }
+    }));
+  }, [])
 
   const addNewJokers = (userLevel: number, questionLevel: number) => {
     let jokerNumber
@@ -187,7 +211,7 @@ export const useJokers = () => {
     } else {
       jokerNumber = 1
     }
-    const randomSelectedJokers = groupBy(getRandomSelections(['hint', 'eye', 'defender'], jokerNumber, { allowDuplicates: true }))
+    const randomSelectedJokers = groupBy(getRandomSelections([...jokerTypes], jokerNumber, { allowDuplicates: true }))
     setNewJokers(Object.entries(randomSelectedJokers).map(([key, value]) => ({
       name: key,
       icon: initialState[key as jokerType].icon,
@@ -203,7 +227,7 @@ export const useJokers = () => {
       return ({
         ...prevJokers,
         ...Object.entries(randomSelectedJokers)
-          .filter(([key]) => ['hint', 'eye', 'defender'].includes(key))
+          .filter(([key]) => jokerTypes.includes(key as jokerType))
           .reduce((acc, [key, value]) => {
             const typedKey = key as jokerType;
             return {

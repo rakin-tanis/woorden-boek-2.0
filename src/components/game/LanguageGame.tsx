@@ -16,7 +16,7 @@ import { Joker, useJokers } from '@/hooks/useJokers';
 
 const LanguageGame: React.FC = () => {
   const { status: sessionStatus } = useSession();
-  const { gameState, setGameState, showAnswer, nextQuestion, reset } = useGameLogic();
+  const { gameState, setGameState, showAnswer, nextQuestion, reset, addExtraTime } = useGameLogic();
   const { fetchGameExamples: fetchExamples } = useGameExamplesFetch();
   const { fetchPlayerDetails: fetchPlayer, updatePlayerDetails: updatePlayer } = usePlayerFetch();
 
@@ -191,9 +191,10 @@ const LanguageGame: React.FC = () => {
             <JokerButton
               key={joker.name}
               action={() => {
-                console.log(joker.name)
                 if (['Beschermer', 'Oog', 'hint'].some(i => i === joker.name))
                   joker.action(gameState, showAnswer);
+                else if (joker.name === 'clock')
+                  joker.action(gameState, addExtraTime)
               }}
               count={joker.count ?? 0}
               disabled={joker.count === 0 || gameState.questionStatus !== 'playing'}
