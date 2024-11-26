@@ -2,7 +2,7 @@
 
 import React, { useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/Card';
-import JokerButton from './JokerButton';
+import JokerButton from './joker/JokerButton';
 import { useSession } from 'next-auth/react';
 import { GameLoading } from './GameLoading';
 import { GameFinished } from './GameFinished';
@@ -11,8 +11,8 @@ import { GameQuestion } from './GameQuestion';
 import { useGameLogic } from '@/hooks/useGameLogic';
 import { useGameExamplesFetch } from '@/hooks/useGameExamplesFetch';
 import { usePlayerFetch } from '@/hooks/usePlayerFetch';
-import { useJokers } from '@/hooks/useJokers';
-import { Joker } from '@/types';
+import { Joker, useJokers } from '@/hooks/useJokers';
+
 
 const LanguageGame: React.FC = () => {
   const { status: sessionStatus } = useSession();
@@ -20,7 +20,7 @@ const LanguageGame: React.FC = () => {
   const { fetchGameExamples: fetchExamples } = useGameExamplesFetch();
   const { fetchPlayerDetails: fetchPlayer, updatePlayerDetails: updatePlayer } = usePlayerFetch();
 
-  const { jokers, addNewJokers, reset: resetJokers, jokerEffects, resetEffects } = useJokers();
+  const { jokers, addNewJokers, reset: resetJokers, jokerEffects, resetEffects, newJokersAnimation } = useJokers();
 
   // Fetch game examples
   const fetchGameExamples = useCallback(async (level?: string) => {
@@ -148,7 +148,7 @@ const LanguageGame: React.FC = () => {
       console.error('Error fetching game examples:', error);
       setGameState(state => ({ ...state, gameStatus: 'finished' }));
     }
-  }, [fetchGameExamples, gameState.level, reset, resetJokers]);
+  }, [fetchGameExamples, gameState.level, gameState.score, reset, resetJokers, setGameState]);
 
   // Loading state
   if (sessionStatus === 'loading' || gameState.gameStatus === 'loading') {
@@ -171,6 +171,7 @@ const LanguageGame: React.FC = () => {
   return (
     <Card
       className={`
+          relative
           w-full
           max-w-2xl 
           mx-auto 
@@ -190,19 +191,17 @@ const LanguageGame: React.FC = () => {
             <JokerButton
               key={joker.name}
               action={() => {
-                if (joker.name === 'Beschermer')
-                  joker.action(gameState, showAnswer)
-                if (joker.name === 'Oog')
-                  joker.action(gameState)
-                if (joker.name === 'hint')
-                  joker.action(gameState)
+                console.log(joker.name)
+                if (['Beschermer', 'Oog', 'hint'].some(i => i === joker.name))
+                  joker.action(gameState, showAnswer);
               }}
               count={joker.count ?? 0}
               disabled={joker.count === 0 || gameState.questionStatus !== 'playing'}
               variant={joker.variant}
               animationVariant={joker.animationVariant}
+              name={''}
             >
-              {joker.icon}
+              {React.createElement(joker.icon)}
             </JokerButton>
           ))}
       </div>
@@ -230,6 +229,9 @@ const LanguageGame: React.FC = () => {
           onNextQuestion={() => goToNextQuestion()}
         />
       )}
+
+      {/* Joker win animation */}
+      {newJokersAnimation()}
 
     </Card>
 

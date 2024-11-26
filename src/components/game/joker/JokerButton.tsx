@@ -1,36 +1,22 @@
 "use client"
 
 import React, { useEffect, useState } from 'react'
-import { Button } from '../ui/Button'
+import { Button } from '../../ui/Button'
+import { Joker } from '@/hooks/useJokers'
+import { getJokerButtonVariantDetails, JokerButtonVariantsDetailValueType } from './jokerVariants'
 
-interface JokerButtonProps {
-  name?: string,
-  action: () => void;
-  count: number,
-  disabled?: boolean;
-  children: React.ReactNode;
-  variant: keyof typeof buttonVariants;
-  animationVariant?: 'bubble' | 'scale' | 'glow-press' | 'bubbly' | 'default';
-}
-
-const buttonVariants = {
-  blue: {
-    enabled: "text-white bg-blue-600 border-0 hover:text-blue-400 hover:bg-blue-200 hover:border-0",
-    disabled: "bg-blue-300 text-white cursor-not-allowed opacity-50"
-  },
-  purple: {
-    enabled: "text-white bg-purple-600 border-0 hover:text-purple-400 hover:bg-purple-200 hover:border-0",
-    disabled: "border border-blue-300 text-blue-300 cursor-not-allowed opacity-50"
-  },
-  yellow: {
-    enabled: "text-white bg-yellow-500 border-0 hover:text-yellow-400 hover:bg-yellow-200 hover:border-0",
-    disabled: "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
-  },
-  lime: {
-    enabled: "text-white bg-lime-600 border-0 hover:text-lime-400 hover:bg-lime-200 hover:border-0",
-    disabled: "bg-lime-300 text-white cursor-not-allowed opacity-50"
+type JokerButtonProps = Pick<Joker,
+  'name' |
+  "count" |
+  'disabled' |
+  'variant' |
+  'animationVariant'>
+  & {
+    action: () => void,
+    children: React.ReactNode
   }
-}
+
+
 
 // Custom styles for bubbly button effect
 const getBubblyButtonStyles = (buttonColor: string) => `
@@ -137,6 +123,7 @@ const JokerButton: React.FC<JokerButtonProps> = ({
   const [isClicked, setIsClicked] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [clientStyles, setClientStyles] = useState<string | null>(null);
+  const [jokerButtonVariantDetails, setJokerButtonVariantDetails] = useState<JokerButtonVariantsDetailValueType>()
 
   // Color mapping for different variants
   /* const variantColors = {
@@ -151,6 +138,10 @@ const JokerButton: React.FC<JokerButtonProps> = ({
       setClientStyles(getBubblyButtonStyles('234, 179, 8'/* variantColors[variant] */));
     }
   }, [animationVariant, variant]);
+
+  useEffect(() => {
+    setJokerButtonVariantDetails(getJokerButtonVariantDetails(variant))
+  }, [variant])
 
   useEffect(() => {
     if (count > 0) {
@@ -203,8 +194,8 @@ const JokerButton: React.FC<JokerButtonProps> = ({
             transition-all duration-300 ease-in-out transform
             ${getAnimationClasses()}
             ${!count || (count && count > 0)
-                ? buttonVariants[variant].enabled
-                : buttonVariants[variant].disabled}
+                ? jokerButtonVariantDetails?.enabled
+                : jokerButtonVariantDetails?.disabled}
             focus:outline-none focus:ring-0 
             focus:ring-${variant}-500 
             dark:focus:outline-none dark:focus:ring-0

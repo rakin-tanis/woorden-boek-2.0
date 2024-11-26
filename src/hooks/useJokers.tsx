@@ -1,9 +1,22 @@
 // hooks/useJokers.ts
-import { Joker } from '@/types';
-import { Eye, Shield, Zap } from 'lucide-react';
+import { Eye, LucideIcon, Shield, Zap } from 'lucide-react';
 import { useState, useCallback } from 'react';
 import { GameState } from './useGameLogic';
 import { getRandomSelections, getWrongLettersIndexes, getWrongWordsIndexes, groupBy } from '@/lib/game';
+import { JokerWinAnimation } from '@/components/game/joker/JokerWinAnimation';
+import { AnimatePresence } from 'framer-motion';
+import { JokerButtonVariantType } from '@/components/game/joker/jokerVariants';
+
+export interface Joker {
+  order: number;
+  name: string;
+  action: (gameState: GameState, ...params: unknown[]) => void;
+  count: number;
+  disabled: boolean;
+  variant: JokerButtonVariantType;
+  animationVariant: "bubbly";
+  icon: LucideIcon;
+}
 
 interface JokersState {
   hint: Joker;
@@ -11,28 +24,45 @@ interface JokersState {
   defender: Joker;
 }
 
+interface NewJoker {
+  name: string,
+  icon: LucideIcon,
+  count: number,
+  variant: JokerButtonVariantType
+}
+
+type jokerType = 'hint' | 'eye' | 'defender'
+
 export const useJokers = () => {
 
-  const initialState = {
+  const initialState: JokersState = {
     hint: {
       order: 1,
       name: 'hint',
-      action: (gameState: GameState) => revealWrongLetters(gameState),
+      action: (gameState: GameState, ...params: unknown[]) => {
+        // Ensure the first param is a function that matches the showAnswer signature
+        const showAnswer = params[0] as (message?: string) => void;
+        return revealWrongLetters(gameState, showAnswer);
+      },
       count: 3,
       disabled: false,
-      variant: 'yellow' as "yellow" | "purple" | "lime" | "blue",
+      variant: 'yellow',
       animationVariant: 'bubbly' as "bubbly",
-      icon: <Zap className="w-6 h-6" />
+      icon: Zap
     },
     eye: {
       order: 2,
       name: 'Oog',
-      action: (gameState: GameState) => revealWrongWords(gameState),
+      action: (gameState: GameState, ...params: unknown[]) => {
+        // Ensure the first param is a function that matches the showAnswer signature
+        const showAnswer = params[0] as (message?: string) => void;
+        return revealWrongWords(gameState, showAnswer);
+      },
       count: 3,
       disabled: false,
-      variant: 'purple' as "yellow" | "purple" | "lime" | "blue",
+      variant: 'purple',
       animationVariant: 'bubbly' as "bubbly",
-      icon: <Eye className="w-6 h-6" />
+      icon: Eye
     },
     defender: {
       order: 3,
@@ -44,17 +74,18 @@ export const useJokers = () => {
       },
       count: 3,
       disabled: false,
-      variant: 'lime' as "yellow" | "purple" | "lime" | "blue",
+      variant: 'lime',
       animationVariant: 'bubbly' as "bubbly",
-      icon: <Shield className="w-6 h-6" />
+      icon: Shield
     },
   }
 
   const [jokers, setJokers] = useState<JokersState>(initialState);
+  const [newJokers, setNewJokers] = useState<NewJoker[]>([]);
 
   const [jokerEffects, setJokerEffects] = useState<{ name: string, indexes: number[] }[]>([])
 
-  const revealWrongLetters = (gameState: GameState) => {
+  const revealWrongLetters = (gameState: GameState, showAnswer: (message?: string) => void) => {
     if (gameState.isAnswerSubmitted || jokers.hint.count < 1) return;
 
     const input = gameState.userAnswer.toLowerCase();
@@ -62,10 +93,14 @@ export const useJokers = () => {
 
     const indexes = getWrongLettersIndexes(question!, input)
 
-    setJokerEffects((prevEffects) => ([
-      ...prevEffects.filter(j => j.name !== 'revealWrongLetters'),
-      { name: "revealWrongLetters", indexes }
-    ]))
+    if (indexes.length > 0) {
+      setJokerEffects((prevEffects) => ([
+        ...prevEffects.filter(j => j.name !== 'revealWrongLetters'),
+        { name: "revealWrongLetters", indexes }
+      ]))
+    } else {
+      showAnswer()
+    }
 
     setJokers(prev => ({
       ...prev,
@@ -76,7 +111,7 @@ export const useJokers = () => {
     }));
   };
 
-  const revealWrongWords = (gameState: GameState) => {
+  const revealWrongWords = (gameState: GameState, showAnswer: (message?: string) => void) => {
     if (gameState.isAnswerSubmitted || jokers.eye.count < 1) return;
 
     const input = gameState.userAnswer.toLowerCase();
@@ -91,10 +126,15 @@ export const useJokers = () => {
         return idx;
       }).flat()
 
-    setJokerEffects((prevEffects) => ([
-      ...prevEffects.filter(j => j.name !== 'revealWrongWords'),
-      { name: "revealWrongWords", indexes }
-    ]))
+    if (indexes.length > 0) {
+      setJokerEffects((prevEffects) => ([
+        ...prevEffects.filter(j => j.name !== 'revealWrongWords'),
+        { name: "revealWrongWords", indexes }
+      ]))
+    } else {
+      showAnswer()
+    }
+
 
     setJokers(prev => ({
       ...prev,
@@ -147,14 +187,25 @@ export const useJokers = () => {
     } else {
       jokerNumber = 1
     }
+    const randomSelectedJokers = groupBy(getRandomSelections(['hint', 'eye', 'defender'], jokerNumber, { allowDuplicates: true }))
+    setNewJokers(Object.entries(randomSelectedJokers).map(([key, value]) => ({
+      name: key,
+      icon: initialState[key as jokerType].icon,
+      count: value,
+      variant: initialState[key as jokerType].variant
+    })))
+
+    setTimeout(() => {
+      setNewJokers([]); // Assign an empty array after 3 seconds
+    }, 2000);
+
     setJokers(prevJokers => {
-      const randomSelectedJokers = groupBy(getRandomSelections(['hint', 'eye', 'defender'], jokerNumber))
       return ({
         ...prevJokers,
         ...Object.entries(randomSelectedJokers)
           .filter(([key]) => ['hint', 'eye', 'defender'].includes(key))
           .reduce((acc, [key, value]) => {
-            const typedKey = key as 'hint' | 'eye' | 'defender';
+            const typedKey = key as jokerType;
             return {
               ...acc,
               [typedKey]: {
@@ -178,6 +229,18 @@ export const useJokers = () => {
     setJokerEffects([]);
   }, []);
 
+  const newJokersAnimation = () => {
+    return (
+      <AnimatePresence>
+        {newJokers.length > 0 && (
+          <JokerWinAnimation
+            jokers={newJokers}
+          />
+        )}
+      </AnimatePresence>
+    )
+  }
 
-  return { jokers, setJokers, addNewJokers, reset, resetEffects, jokerEffects, setJokerEffects };
+
+  return { jokers, setJokers, addNewJokers, reset, resetEffects, jokerEffects, setJokerEffects, newJokersAnimation };
 };
