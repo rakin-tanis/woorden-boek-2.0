@@ -3,7 +3,7 @@ import { Joker } from '@/types';
 import { Eye, Shield, Zap } from 'lucide-react';
 import { useState, useCallback } from 'react';
 import { GameState } from './useGameLogic';
-import { getWrongLettersIndexes, getWrongWordsIndexes } from '@/lib/game';
+import { getRandomSelections, getWrongLettersIndexes, getWrongWordsIndexes, groupBy } from '@/lib/game';
 
 interface JokersState {
   hint: Joker;
@@ -138,6 +138,35 @@ export const useJokers = () => {
     }));
   }, []);
 
+  const addNewJokers = (userLevel: number, questionLevel: number) => {
+    let jokerNumber
+    if (questionLevel > userLevel) {
+      jokerNumber = 3
+    } else if (questionLevel === userLevel) {
+      jokerNumber = 2
+    } else {
+      jokerNumber = 1
+    }
+    setJokers(prevJokers => {
+      const randomSelectedJokers = groupBy(getRandomSelections(['hint', 'eye', 'defender'], jokerNumber))
+      return ({
+        ...prevJokers,
+        ...Object.entries(randomSelectedJokers)
+          .filter(([key]) => ['hint', 'eye', 'defender'].includes(key))
+          .reduce((acc, [key, value]) => {
+            const typedKey = key as 'hint' | 'eye' | 'defender';
+            return {
+              ...acc,
+              [typedKey]: {
+                ...prevJokers[typedKey],
+                count: prevJokers[typedKey].count + value
+              }
+            };
+          }, prevJokers)
+      })
+    });
+  }
+
   const resetEffects = () => {
     console.log('resetEffects')
     setJokerEffects([]);
@@ -150,5 +179,5 @@ export const useJokers = () => {
   }, []);
 
 
-  return { jokers, setJokers, reset, resetEffects, jokerEffects, setJokerEffects };
+  return { jokers, setJokers, addNewJokers, reset, resetEffects, jokerEffects, setJokerEffects };
 };

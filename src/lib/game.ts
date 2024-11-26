@@ -120,7 +120,7 @@ const motivationPhrases = [
   },
 ];
 
-function calculateLevel(answers: AnswerResult[], currentLevel = 1): number {
+const calculateLevel = (answers: AnswerResult[], currentLevel = 1): number => {
   // Weights for different theme levels relative to player's current level
   const getQuestionWeight = (themeLevel: number): number => {
     const levelDiff = themeLevel - currentLevel;
@@ -161,9 +161,9 @@ const getMotivationPhrase = (correctNumber: number) => {
     .phrases[random];
 };
 
-function generateQuestionDistribution(
+const generateQuestionDistribution = (
   currentLevel: number
-): QuestionDistribution[] {
+): QuestionDistribution[] => {
   // Ensure level is within bounds
   const boundedLevel = Math.max(1, Math.min(50, currentLevel));
 
@@ -250,10 +250,10 @@ const getWrongWordsIndexes = (original: string, comparison: string) => {
   return wrongWords;
 };
 
-function getWrongLettersIndexes(
+const getWrongLettersIndexes = (
   referenceText: string,
   input: string
-): number[] {
+): number[] => {
   const wrongIndexes: number[] = [];
   const referenceLength = referenceText.length;
   const inputLength = input.length;
@@ -281,6 +281,83 @@ function getWrongLettersIndexes(
   return wrongIndexes;
 }
 
+/**
+ * Returns a specified number of unique random selections from an array
+ * @template T The type of elements in the array
+ * @param array The source array to select from
+ * @param count Number of random selections to make
+ * @param options Optional configuration for selection
+ * @returns Array of randomly selected items
+ */
+function getRandomSelections<T>(
+  array: T[], 
+  count: number, 
+  options: {
+      allowDuplicates?: boolean;
+      seed?: number;
+  } = {}
+): T[] {
+  // Validate inputs
+  if (array.length === 0) {
+      return [];
+  }
+
+  const {
+      allowDuplicates = false,
+      seed
+  } = options;
+
+  // Create a random number generator with optional seed
+  const randomGenerator = seed !== undefined 
+      ? createSeededRandom(seed) 
+      : Math.random;
+
+  // Adjust count to not exceed array length if no duplicates allowed
+  const safeCount = allowDuplicates 
+      ? count 
+      : Math.min(count, array.length);
+
+  if (allowDuplicates) {
+      // Simple random selection with duplicates allowed
+      return Array.from({ length: safeCount }, () => 
+          array[Math.floor(randomGenerator() * array.length)]
+      );
+  } else {
+      // Unique selection without duplicates using Fisher-Yates shuffle
+      const shuffled = [...array];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(randomGenerator() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled.slice(0, safeCount);
+  }
+}
+
+/**
+* Creates a seeded random number generator
+* @param seed Seed value for random generation
+* @returns Seeded random number generator function
+*/
+const createSeededRandom = (seed: number): () => number => {
+  // Simple linear congruential generator
+  let x = seed;
+  const a = 1664525;
+  const c = 1013904223;
+  const m = Math.pow(2, 32);
+
+  return () => {
+      x = (a * x + c) % m;
+      return x / m;
+  };
+}
+
+function groupBy<T>(array: T[]): Record<string, number> {
+  return array.reduce((acc, curr) => {
+      acc[curr as string] = (acc[curr as string] || 0) + 1;
+      return acc;
+  }, {} as Record<string, number>);
+}
+
 export {
   isAllowedLetter,
   calculateLevel,
@@ -288,6 +365,8 @@ export {
   generateQuestionDistribution,
   getWrongWordsIndexes,
   getWrongLettersIndexes,
+  getRandomSelections,
+  groupBy
 };
 export type {
   QuestionDistribution,
