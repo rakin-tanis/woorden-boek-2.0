@@ -1,4 +1,4 @@
-import { LeaderboardEntry, LeaderboardResponse, useLeaderboard } from "@/hooks/useLeaderboard";
+import { LeaderboardEntry, LeaderboardResponse } from "@/hooks/useLeaderboard";
 import { motion } from "framer-motion";
 import { Card } from "../ui/Card";
 
