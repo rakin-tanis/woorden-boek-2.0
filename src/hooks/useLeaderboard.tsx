@@ -9,19 +9,14 @@ export interface LeaderboardEntry {
   rank: number;
 }
 
-interface LeaderboardResponse {
+export interface LeaderboardResponse {
   entries: LeaderboardEntry[],
   totalPlayersInRange: number,
   levelRange: { min: number, max: number }
   currentPlayerRank: number,
 }
 
-export interface LeaderboardProps {
-  minLevel: number;
-  maxLevel: number;
-}
-
-export const useLeaderboard = ({ minLevel, maxLevel }: LeaderboardProps) => {
+export const useLeaderboard = () => {
   const [leaderboard, setLeaderboard] = useState<LeaderboardResponse>();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +25,8 @@ export const useLeaderboard = ({ minLevel, maxLevel }: LeaderboardProps) => {
     const fetchLeaderboard = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/leaderboard?minLevel=${minLevel}&maxLevel=${maxLevel}`, {
+        // ?minLevel=${minLevel}&maxLevel=${maxLevel}
+        const response = await fetch(`/api/leaderboard`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -52,7 +48,7 @@ export const useLeaderboard = ({ minLevel, maxLevel }: LeaderboardProps) => {
     };
 
     fetchLeaderboard();
-  }, [minLevel, maxLevel]);
+  }, []);
 
   return { leaderboard, isLoading, error };
 };

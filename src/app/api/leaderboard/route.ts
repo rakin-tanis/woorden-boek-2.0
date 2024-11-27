@@ -1,14 +1,10 @@
+import { leaderboardSections } from "@/components/leaderboard/leaderboardSections";
 import { getServerSession } from "@/lib/auth";
 import clientPromise from "@/lib/mongodb";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const session = await getServerSession();
-
-  // Check URL search params for level range
-  const url = new URL(req.url);
-  const minLevel = parseInt(url.searchParams.get("minLevel") || "1");
-  const maxLevel = parseInt(url.searchParams.get("maxLevel") || "50");
 
   if (!session?.user)
     return NextResponse.json({ message: "unauthorized" }, { status: 401 });
@@ -23,11 +19,28 @@ export async function GET(req: NextRequest) {
     });
 
     if (!currentUser) {
+      return NextResponse.json({ message: "User not found" }, { status: 404 });
+    }
+
+    const currentPlayer = await collection.findOne({
+      userId: `${session?.user.id}`,
+    });
+
+    if (!currentPlayer) {
       return NextResponse.json(
-        { message: "Current user not found" },
+        { message: "player not found" },
         { status: 404 }
       );
     }
+
+    const { minLevel, maxLevel } = leaderboardSections.find(
+      (section) =>
+        currentPlayer.level >= section.minLevel &&
+        currentPlayer.level <= section.maxLevel
+    ) || {
+      minLevel: 1,
+      maxLevel: 50,
+    };
 
     // Find all players in the specified level range
     const allPlayersInRange = await collection
@@ -97,7 +110,6 @@ export async function GET(req: NextRequest) {
         leaderboardEntries.push(tp);
       }
     });
-
 
     // Sort entries by score
     const finalEntries = leaderboardEntries.sort((a, b) => b.score - a.score);

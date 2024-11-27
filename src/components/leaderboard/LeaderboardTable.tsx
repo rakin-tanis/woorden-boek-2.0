@@ -1,20 +1,19 @@
-import { LeaderboardEntry, LeaderboardProps, useLeaderboard } from "@/hooks/useLeaderboard";
+import { LeaderboardEntry, LeaderboardResponse, useLeaderboard } from "@/hooks/useLeaderboard";
 import { motion } from "framer-motion";
 import { Card } from "../ui/Card";
 
 
-interface LeaderboardTableProps extends LeaderboardProps {
+interface LeaderboardTableProps {
   title: string;
   description: string;
+  leaderboard: LeaderboardResponse;
 }
 
 const LeaderboardTable: React.FC<LeaderboardTableProps> = ({
-  minLevel,
-  maxLevel,
   title,
-  description
+  description,
+  leaderboard,
 }) => {
-  const { leaderboard, isLoading, error } = useLeaderboard({ minLevel, maxLevel });
 
   const tableVariants = {
     hidden: { opacity: 0 },
@@ -38,22 +37,6 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({
       }
     }
   };
-
-  if (isLoading) {
-    return (
-      <Card className="max-w-2xl mx-auto p-6 text-center text-gray-950 dark:text-white z-30">
-        Loading leaderboard...
-      </Card>
-    );
-  }
-
-  if (error) {
-    return (
-      <Card className="max-w-2xl mx-auto p-6 text-center text-gray-950 dark:text-white z-30">
-        {error}
-      </Card>
-    );
-  }
 
   return (
     <Card className="max-w-2xl mx-auto p-6 text-center text-gray-950 dark:text-white z-30">

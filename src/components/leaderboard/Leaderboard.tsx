@@ -1,48 +1,25 @@
 'use client'
 
 import React from 'react';
-import { usePlayer } from '@/hooks/usePlayer';
 import LeaderboardTable from './LeaderboardTable';
+import { useLeaderboard } from '@/hooks/useLeaderboard';
+import { leaderboardSections } from './leaderboardSections';
+import { motion } from 'framer-motion';
+import { Card } from '../ui/Card';
 
 export const Leaderboard: React.FC = () => {
-  const leaderboardSections = [
-    {
-      minLevel: 1,
-      maxLevel: 10,
-      title: 'Kaas & Stroopwafel Divisie',
-      description: 'Proeven van de eerste successen'
-    },
-    {
-      minLevel: 11,
-      maxLevel: 20,
-      title: 'Tulpen & Klompen Divisie',
-      description: 'Wortel schieten en groeien als een Nederlandse traditie'
-    },
-    {
-      minLevel: 21,
-      maxLevel: 35,
-      title: 'Fietsen & Windmolen Divisie',
-      description: 'Vooruit met de kracht van Nederlandse innovatie'
-    },
-    {
-      minLevel: 36,
-      maxLevel: 50,
-      title: 'Oranje & Water Strijders Divisie',
-      description: 'De top bereiken met de kracht van een oranje legioen'
-    }
-  ];
 
-  const { player, isLoading: isPlayerLoading, error: playerError } = usePlayer();
+  const { leaderboard, isLoading, error } = useLeaderboard();
 
-  if (isPlayerLoading) {
-    return <div className="text-center text-white">Loading player data...</div>;
+  if (isLoading) {
+    return <div className="text-center text-white">Leaderboard loading...</div>;
   }
 
-  if (playerError) {
-    return <div className="text-center text-red-500">{playerError}</div>;
+  if (error) {
+    return <div className="text-center text-red-500">{error}</div>;
   }
 
-  const playerLevel = player?.level || 1;
+  const playerLevel = leaderboard?.currentPlayerRank || 1;
 
   const relevantSection = leaderboardSections.find(section =>
     playerLevel >= section.minLevel && playerLevel <= section.maxLevel
@@ -56,6 +33,22 @@ export const Leaderboard: React.FC = () => {
     section.minLevel > (relevantSection?.maxLevel || 0)
   );
 
+  if (isLoading) {
+    return (
+      <Card className="max-w-2xl mx-auto p-6 text-center text-gray-950 dark:text-white z-30">
+        Loading leaderboard...
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="max-w-2xl mx-auto p-6 text-center text-gray-950 dark:text-white z-30">
+        {error}
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="text-center dark:text-white text-gray-900 mb-4">
@@ -65,13 +58,12 @@ export const Leaderboard: React.FC = () => {
               .sort((a, b) => a.maxLevel - b.maxLevel)
               .map((section, index) => {
                 return (
-                  <div
+                  <motion.div
                     key={index}
                     className={`
                     ${["opacity-75", 'opacity-50', 'opacity-25'][index]} 
-                    ${["z-20", 'z-10', 'z-0'][index]}
-                    ${["mx-4", 'mx-8', 'mx-12'][index]}
-                    ${["-bottom-2", 'bottom-14', 'bottom-28'][index]}
+                    ${["z-[2]", 'z-[1]', 'z-[0]'][index]}
+                    ${["-bottom-1", 'bottom-14', 'bottom-28'][index]}
                     bg-gradient-to-b dark:from-gray-900 from-gray-200 to-transparent/0
                     h-20  
                     w-full                  
@@ -89,19 +81,21 @@ export const Leaderboard: React.FC = () => {
                     }}
                   >
                     {section.title}
-                  </div>
+                  </motion.div>
                 )
               })
           }
         </div>
-        {relevantSection && (
-          <LeaderboardTable
-            minLevel={relevantSection.minLevel}
-            maxLevel={relevantSection.maxLevel}
-            title={relevantSection.title}
-            description={relevantSection.description}
-          />
-        )}
+
+        <div className='z-[3]'>
+          {relevantSection && leaderboard && (
+            <LeaderboardTable
+              leaderboard={leaderboard}
+              title={relevantSection.title}
+              description={relevantSection.description}
+            />
+          )}
+        </div>
 
         <div className=" relative flex flex-col justify-center items-center text-center mt-8 dark:text-white text-gray-700 ">
           {
@@ -113,7 +107,7 @@ export const Leaderboard: React.FC = () => {
                     key={index}
                     className={`
                     ${["opacity-75", 'opacity-50', 'opacity-25'][index]} 
-                    ${["z-20", 'z-10', 'z-0'][index]}
+                    ${["z-[6]", 'z-[5]', 'z-[4]'][index]}
                     ${["mb-0", 'mb-0', 'mb-0'][index]}
                     bg-gradient-to-b dark:from-gray-900 from-gray-200 to-transparent/0
                     h-20       
