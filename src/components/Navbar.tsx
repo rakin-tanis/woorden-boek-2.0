@@ -14,6 +14,11 @@ const Navbar = () => {
   const menuItems = [
     { label: "Home", href: "/", show: pathname !== '/' },
     {
+      label: "Leaderboard",
+      href: "/leaderboard",
+      show: ["USER", "EDITOR", "ADMIN"].some(role => role === session?.user?.role?.toUpperCase()) && !getPathRegex('leaderboard').test(pathname),
+    },
+    {
       label: "Admin",
       href: "/admin",
       show: session?.user?.role?.toUpperCase() === "ADMIN" && !getPathRegex('admin').test(pathname),
