@@ -41,7 +41,7 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({
 
   if (isLoading) {
     return (
-      <Card className="max-w-2xl mx-auto p-6 text-center text-gray-950 dark:text-white">
+      <Card className="max-w-2xl mx-auto p-6 text-center text-gray-950 dark:text-white z-30">
         Loading leaderboard...
       </Card>
     );
@@ -49,14 +49,14 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({
 
   if (error) {
     return (
-      <Card className="max-w-2xl mx-auto p-6 text-center text-gray-950 dark:text-white">
+      <Card className="max-w-2xl mx-auto p-6 text-center text-gray-950 dark:text-white z-30">
         {error}
       </Card>
     );
   }
 
   return (
-    <Card className="max-w-2xl mx-auto p-6 text-center text-gray-950 dark:text-white">
+    <Card className="max-w-2xl mx-auto p-6 text-center text-gray-950 dark:text-white z-30">
       <h2 className="text-2xl font-bold mb-0 text-center text-gray-900 dark:text-white">
         {title}
       </h2>

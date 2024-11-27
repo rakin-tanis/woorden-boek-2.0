@@ -58,7 +58,7 @@ export const Leaderboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="text-center text-white mb-4">
+      <div className="text-center dark:text-white text-gray-900 mb-4">
         <div className="relative flex flex-col-reverse justify-center items-center text-center">
           {
             nextSections
@@ -72,7 +72,7 @@ export const Leaderboard: React.FC = () => {
                     ${["z-20", 'z-10', 'z-0'][index]}
                     ${["mx-4", 'mx-8', 'mx-12'][index]}
                     ${["-bottom-2", 'bottom-14', 'bottom-28'][index]}
-                    bg-gradient-to-b from-gray-900 to-transparent/0
+                    bg-gradient-to-b dark:from-gray-900 from-gray-200 to-transparent/0
                     h-20  
                     w-full                  
                     rounded-tr-lg 
@@ -81,6 +81,7 @@ export const Leaderboard: React.FC = () => {
                     p-4 
                     backdrop-blur-sm
                     absolute
+                    drop-shadow-2xl
                   `}
                     style={{
                       transform: "perspective(200px) rotateX(-5deg)",
@@ -102,7 +103,7 @@ export const Leaderboard: React.FC = () => {
           />
         )}
 
-        <div className=" relative flex flex-col justify-center items-center text-center mt-8">
+        <div className=" relative flex flex-col justify-center items-center text-center mt-8 dark:text-white text-gray-700 ">
           {
             previousSections
               .sort((a, b) => b.maxLevel - a.maxLevel)
@@ -114,7 +115,7 @@ export const Leaderboard: React.FC = () => {
                     ${["opacity-75", 'opacity-50', 'opacity-25'][index]} 
                     ${["z-20", 'z-10', 'z-0'][index]}
                     ${["mb-0", 'mb-0', 'mb-0'][index]}
-                    bg-gradient-to-b from-gray-900 to-transparent/0
+                    bg-gradient-to-b dark:from-gray-900 from-gray-200 to-transparent/0
                     h-20       
                     w-full  
                     max-w-xl          
