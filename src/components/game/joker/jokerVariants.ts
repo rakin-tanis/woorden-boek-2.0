@@ -3,9 +3,9 @@ import {
   Clock,
   Eye,
   LucideIcon,
+  Microscope,
+  SearchCode,
   Shield,
-  ShieldCheck,
-  ShieldHalf,
 } from "lucide-react";
 
 export type JokerButtonVariantType =
@@ -188,6 +188,7 @@ export const getJokerButtonVariantDetails = (
 export interface Joker {
   id: string;
   name: string;
+  description: string;
   order: number;
   action: ((gameState: GameState, ...params: unknown[]) => void) | null;
   count: number;
@@ -215,30 +216,34 @@ export const jokerIds = {
 export const JOKERS: ReadonlyArray<Joker> = [
   {
     id: jokerIds.SHOW_WRONG_LETTERS,
-    name: "letter beschermer",
+    name: "Letterverkenner",
+    description: "Deze joker vindt en toont de verkeerd geschreven letters.",
     order: 1,
     action: null,
     count: 3,
     disabled: false,
     variant: "rose",
     animationVariant: "bubbly",
-    icon: ShieldCheck,
+    icon: Microscope,
   },
   {
     id: jokerIds.SHOW_WRONG_WORDS,
-    name: "woord bechermer",
+    name: "Woordenjager",
+    description: "Deze joker vindt en toont de verkeerd geschreven woorden.",
     order: 2,
     action: null,
     count: 3,
     disabled: false,
     variant: "orange",
     animationVariant: "bubbly",
-    icon: ShieldHalf,
+    icon: SearchCode,
   },
   {
     id: jokerIds.SHOW_ANSWER_IF_NOT_WRONG,
+    name: "Veilige Beschermer",
+    description:
+      "Deze joker stelt je in staat om je antwoord veilig te testen. Als je een verkeerd antwoord geeft, verlies je niet.",
     order: 3,
-    name: "beschermer",
     action: null,
     count: 3,
     disabled: false,
@@ -248,8 +253,9 @@ export const JOKERS: ReadonlyArray<Joker> = [
   },
   {
     id: jokerIds.TIME,
+    name: "Tijdskluis",
+    description: "Deze joker geeft je 15 extra seconden.",
     order: 4,
-    name: "time",
     action: null,
     count: 1,
     disabled: false,
@@ -259,10 +265,12 @@ export const JOKERS: ReadonlyArray<Joker> = [
   },
   {
     id: jokerIds.SHOW_CORRECT_LETTERS,
+    name: "Oog van Correctie",
+    description:
+      "Deze joker corrigeert een van de verkeerde of ontbrekende letters voor jou.",
     order: 5,
-    name: "eye",
     action: null,
-    count: 5,
+    count: 9,
     disabled: false,
     variant: "green",
     animationVariant: "bubbly",
