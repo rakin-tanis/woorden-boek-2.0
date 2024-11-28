@@ -52,28 +52,45 @@ export async function PUT(req: NextRequest) {
     const client = await clientPromise;
     const playersCollection = client.db("woorden-boek").collection("players");
 
-    const player: Player = {
+    const player: Partial<Player> = {
       userId: session.user.id!,
-      name: session.user.name!,
-      level: body.level,
-      score: body.score,
     };
+
+    if (body.name) {
+      const p = await playersCollection.findOne({ name: body.name });
+      if (p) {
+        return NextResponse.json(
+          {
+            status: "error",
+            message: `Username has already taken.`,
+          },
+          { status: 200 }
+        );
+      }
+      player.name = body.name;
+    }
+
+    if (body.level) {
+      player.level = body.level;
+    }
+
+    if (body.score) {
+      player.score = body.score;
+    }
+
+    console.log(player);
 
     const result = await playersCollection.updateOne(
       { userId: player.userId },
       {
-        $set: {
-          userId: session.user.id,
-          name: player.name,
-          level: player.level,
-          score: player.score,
-        },
+        $set: { ...player },
       },
       { upsert: true }
     );
 
     return NextResponse.json(
       {
+        status: "success",
         message: "Player updated successfully",
         updatedCount: result.modifiedCount,
         upsertedCount: result.upsertedCount,

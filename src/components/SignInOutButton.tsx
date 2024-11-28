@@ -24,11 +24,13 @@ import { useTheme } from "next-themes";
 import { useState } from "react";
 import { toast } from "sonner";
 import Spinner from "./ui/Spinner";
+import { useRouter } from "next/navigation";
 
 const SignInOutButton = () => {
   const { data: session } = useSession();
   const { theme, setTheme } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const handleSignOut = async () => {
     setIsLoading(true);
@@ -116,7 +118,7 @@ const SignInOutButton = () => {
           </span>
         </DropdownMenuItem>
         <DropdownMenuItem
-          onClick={() => {/* Navigate to profile/settings */ }}
+          onClick={() => { router.push('/settings') }}
           className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
         >
           <Settings className="mr-2 h-4 w-4" />

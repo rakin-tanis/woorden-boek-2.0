@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Player } from "@/types";
+import { toast } from "sonner";
 
 export const usePlayer = () => {
   const [player, setPlayer] = useState<Player | null>(null);
@@ -42,7 +43,7 @@ export const usePlayer = () => {
     fetchPlayer();
   }, []);
 
-  const updatePlayer = async (updatedDetails: Partial<Player>) => {
+  const updatePlayer = async (updatedDetails: Partial<Omit<Player, "id">>) => {
     try {
       setIsLoading(true);
       const response = await fetch("/api/player", {
@@ -58,11 +59,22 @@ export const usePlayer = () => {
         throw new Error(errorData.message || "Failed to update player");
       }
 
-      const { player: updatedPlayer } = await response.json();
+      const { status, message } = await response.json();
 
-      setPlayer(updatedPlayer);
+      if (status === "error") {
+        toast.error("Error", {
+          description:
+            "Player name could not be updated: " + JSON.stringify(message),
+          duration: 5000,
+        });
+      } else if (status === "success") {
+        toast.error("Success", {
+          description: "Player name has successfully changed ",
+          duration: 5000,
+        });
+      }
+
       setError(null);
-      return updatedPlayer;
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "An unknown error occurred"
