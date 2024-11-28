@@ -43,7 +43,7 @@ export async function GET() {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    console.log("PUT api/game", body);
+    console.log("PUT api/game");
     const session = await getServerSession();
 
     if (!session?.user)
@@ -77,8 +77,6 @@ export async function PUT(req: NextRequest) {
     if (body.score) {
       player.score = body.score;
     }
-
-    console.log(player);
 
     const result = await playersCollection.updateOne(
       { userId: player.userId },

@@ -27,7 +27,6 @@ export const usePlayer = () => {
         }
 
         const { player: fetchedPlayer } = await response.json();
-        console.log("fetchedPlayer", fetchedPlayer);
         setPlayer(fetchedPlayer);
         setError(null);
       } catch (err) {

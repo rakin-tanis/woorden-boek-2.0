@@ -50,7 +50,6 @@ export const useGameLogic = () => {
   const isAnswerCorrect = useCallback(() => {
     const cleanedInput = gameState.userAnswer.toLowerCase().trim();
     const cleanedCorrect = gameState.currentQuestion?.dutch.toLowerCase().trim();
-    // console.log(gameState, cleanedInput, cleanedCorrect)
     return cleanedInput === cleanedCorrect;
   }, [gameState.userAnswer, gameState.currentQuestion]);
 

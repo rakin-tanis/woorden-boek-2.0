@@ -150,7 +150,6 @@ export const useJokers = () => {
     if (indexes.length > 0) {
       setJokerEffects((prevEffects) => {
         const jokerEffect = prevEffects.find(j => j.name === jokerEffectIds.SHOW_CORRECT_LETTERS);
-        // console.log(jokerEffect)
         const newEffect = !!jokerEffect
           ? {
             name: jokerEffectIds.SHOW_CORRECT_LETTERS,

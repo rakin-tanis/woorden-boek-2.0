@@ -38,7 +38,6 @@ export const useLeaderboard = () => {
         }
 
         const data: LeaderboardResponse = await response.json();
-        console.log(data)
         setLeaderboard(data);
         setIsLoading(false);
       } catch (err) {

@@ -76,7 +76,7 @@ const EditExample: React.FC<EditExampleProps> = ({
     if (!theme || !theme.trim()) {
       newErrors.theme = 'Theme field is required';
     }
-    console.log(newErrors)
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };

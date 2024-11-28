@@ -34,7 +34,6 @@ export const Leaderboard: React.FC = () => {
   const relevantSection = leaderboardSections.find(section =>
     playerLevel >= section.minLevel && playerLevel <= section.maxLevel
   );
-  console.log(playerLevel, relevantSection)
 
   const previousSections = leaderboardSections.filter(section =>
     section.maxLevel < (relevantSection?.minLevel || 0)

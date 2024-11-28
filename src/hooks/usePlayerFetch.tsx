@@ -23,7 +23,6 @@ export const usePlayerFetch = () => {
       // Parse the response
       const playerDetails: { player: Player } = await response.json();
 
-      console.log('player fetched', playerDetails.player)
       // Return the player's current level
       return playerDetails.player;
 

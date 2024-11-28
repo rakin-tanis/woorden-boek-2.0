@@ -39,8 +39,6 @@ export async function PUT(
   const userId = (await params).userId;
   const body = await req.json();
 
-  console.log(body);
-
   if (!userId) {
     return NextResponse.json(
       { error: "User  ID is required" },
