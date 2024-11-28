@@ -11,7 +11,8 @@ import { GameQuestion } from './GameQuestion';
 import { useGameLogic } from '@/hooks/useGameLogic';
 import { useGameExamplesFetch } from '@/hooks/useGameExamplesFetch';
 import { usePlayerFetch } from '@/hooks/usePlayerFetch';
-import { Joker, useJokers } from '@/hooks/useJokers';
+import { useJokers } from '@/hooks/useJokers';
+import { Joker, jokerIds } from './joker/jokerVariants';
 
 
 const LanguageGame: React.FC = () => {
@@ -150,6 +151,18 @@ const LanguageGame: React.FC = () => {
     }
   }, [fetchGameExamples, gameState.level, gameState.score, reset, resetJokers, setGameState]);
 
+
+  const jokerAction = (joker: Joker) => {
+    if (!joker.action) return
+    if ([jokerIds.SHOW_WRONG_LETTERS,
+    jokerIds.SHOW_WRONG_WORDS,
+    jokerIds.SHOW_ANSWER_IF_NOT_WRONG,
+    jokerIds.SHOW_CORRECT_LETTERS].some(i => i === joker.id))
+      joker?.action(gameState, showAnswer);
+    else if (joker.id === jokerIds.TIME)
+      joker?.action(gameState, addExtraTime)
+  }
+
   // Loading state
   if (sessionStatus === 'loading' || gameState.gameStatus === 'loading') {
     return <GameLoading />;
@@ -183,6 +196,17 @@ const LanguageGame: React.FC = () => {
           `}
     >
 
+
+
+
+      {/* Level, Score and Time display */}
+      <GameHeader
+        level={gameState.level.toString()}
+        score={gameState.score}
+        timeRemaining={gameState.timeRemaining}
+        progress={gameState.progress}
+      />
+
       {/* Jokers */}
       <div className="flex space-x-4 h-12">
         {Object.values(jokers)
@@ -190,12 +214,7 @@ const LanguageGame: React.FC = () => {
           .map((joker: Joker) => (
             <JokerButton
               key={joker.name}
-              action={() => {
-                if (['Beschermer', 'Oog', 'hint'].some(i => i === joker.name))
-                  joker.action(gameState, showAnswer);
-                else if (joker.name === 'clock')
-                  joker.action(gameState, addExtraTime)
-              }}
+              action={() => jokerAction(joker)}
               count={joker.count ?? 0}
               disabled={joker.count === 0 || gameState.questionStatus !== 'playing'}
               variant={joker.variant}
@@ -206,15 +225,6 @@ const LanguageGame: React.FC = () => {
             </JokerButton>
           ))}
       </div>
-
-
-      {/* Level, Score and Time display */}
-      <GameHeader
-        level={gameState.level.toString()}
-        score={gameState.score}
-        timeRemaining={gameState.timeRemaining}
-        progress={gameState.progress}
-      />
 
       {/* Current Question */}
       {gameState.currentQuestion && (

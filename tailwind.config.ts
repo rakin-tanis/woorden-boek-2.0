@@ -33,6 +33,17 @@ export default {
         turnAround: {
           "0%": {
             transform: "rotateY(0deg)",
+          },
+          "50%": {
+            transform: "rotateY(180deg)",
+          },
+          "100%": {
+            transform: "rotateY(0deg)",
+          },
+        },
+        turnAroundAndGreen: {
+          "0%": {
+            transform: "rotateY(0deg)",
             backgroundColor: "white",
           },
           "50%": {
@@ -49,7 +60,8 @@ export default {
         shake: "shake 0.5s",
         shake2: "shake2 0.5s ease-in-out",
         pulse: "pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-        turnAround: "turnAround 0.5s ease-in-out forwards",
+        turnAround: "turnAround 0.7s ease-in-out forwards",
+        turnAroundAndGreen: "turnAroundAndGreen 0.5s ease-in-out forwards",
       },
     },
   },

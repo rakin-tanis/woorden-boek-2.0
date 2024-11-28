@@ -3,6 +3,7 @@ import { AppliedJoker } from '@/types';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { OnScreenKeyboard } from './OnScreenKeyboard';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { JokerButtonVariantsDetail, jokerEffectIds, jokerIds, JOKERS } from './joker/jokerVariants';
 
 interface LetterInputProps {
   expectedAnswer: string;
@@ -47,6 +48,10 @@ export const LetterInput: React.FC<LetterInputProps> = ({
 
     // Allow only single alphabetic characters
     if (key.length === 1 && /^[a-zA-Z]$/i.test(key) && isAllowedLetter(expectedAnswer[focusedIndex])) {
+      if (appliedJokers.filter(j => j.name === jokerEffectIds.SHOW_CORRECT_LETTERS).map(j => j.indexes).flat().includes(focusedIndex)) {
+        focusNext()
+        return
+      }
       const newAnswer = [...userAnswer];
       newAnswer[focusedIndex] = key.toLowerCase();
 
@@ -135,6 +140,39 @@ export const LetterInput: React.FC<LetterInputProps> = ({
     }
   }
 
+  useEffect(() => {
+    appliedJokers.map(j => {
+      j.indexes.map(index => {
+        const newAnswer = [...userAnswer];
+        newAnswer[index] = expectedAnswer[index].toLowerCase();
+        setUserAnswer(newAnswer)
+      })
+
+    })
+  }, [appliedJokers])
+
+  const getInputStyle = useCallback((index: number) => {
+    const jokerList = appliedJokers.filter(j => j.indexes.includes(index)).map(j => j.name);
+    switch (true) {
+      case questionStatus === "success":
+        return 'text-black animate-turnAroundAndGreen';
+      case questionStatus === 'failed' && userAnswer[index] !== expectedAnswer[index].toLowerCase():
+        return 'bg-red-500 animate-shake';
+      case jokerList.includes(jokerEffectIds.SHOW_CORRECT_LETTERS):
+        const joker = JOKERS.find(j => j.id === jokerIds.SHOW_CORRECT_LETTERS);
+        return joker?.variant ? JokerButtonVariantsDetail[joker?.variant].bgColor : ''
+      case jokerList.includes(jokerEffectIds.SHOW_WRONG_LETTERS_PLACE):
+        const joker1 = JOKERS.find(j => j.id === jokerIds.SHOW_WRONG_LETTERS);
+        return joker1?.variant ? JokerButtonVariantsDetail[joker1?.variant].bgColor : ''
+      case jokerList.includes(jokerEffectIds.SHOW_WRONG_WORDS_PLACE):
+        const joker2 = JOKERS.find(j => j.id === jokerIds.SHOW_WRONG_WORDS);
+        return joker2?.variant ? JokerButtonVariantsDetail[joker2?.variant].bgColor : ''
+      default:
+        return ''
+    }
+  }, [questionStatus, appliedJokers])
+
+
   const originalWords = expectedAnswer.split(/\s+/);
   let letterIndex = 0;
 
@@ -165,25 +203,14 @@ export const LetterInput: React.FC<LetterInputProps> = ({
                   }),
                   animationFillMode: 'forwards'
                 }}
-                className={`relative flex-1 min-w-[2rem] h-12 border rounded flex items-center justify-center
-                  transition-all duration-300 ease-in-out
+                className={`
+                  relative flex-1 min-w-[2rem] h-12 border rounded flex items-center justify-center
+                  transition-all duration-300 ease-in-out 
+                  text-gray-950 dark:text-white text-xl font-medium uppercase
                   ${!isAllowedLetter(expectedAnswer[letterIndexCopy]) ? 'border-gray-800' : 'border-gray-600'} 
                   ${focusedIndex === index ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-300'}
-                  ${appliedJokers?.map(aj => {
-                  return aj.indexes.includes(letterIndexCopy)
-                    ? aj.name === 'revealWrongWords'
-                      ? 'bg-purple-600'
-                      : aj.name === "revealWrongLetters"
-                        ? "bg-yellow-600"
-                        : "bg-transparent"
-                    : "bg-transparent"
-                }).join(' ')}
-                  ${questionStatus === 'success'
-                    ? `text-black animate-turnAround`
-                    : questionStatus === 'failed' && userAnswer[letterIndexCopy] !== expectedAnswer[letterIndexCopy].toLowerCase()
-                      ? 'bg-red-500 animate-shake'
-                      : 'text-gray-950 dark:text-white'}
-                  text-xl font-medium uppercase`}
+                  ${getInputStyle(letterIndex - 1)}          
+                  `}
               >
                 {userAnswer[index]}
               </div>
