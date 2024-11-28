@@ -47,18 +47,19 @@ const getGameExamples = async (distribution: ThemeDistribution[]) => {
 
   const gameExamples: Example[] = [];
 
-  for (const theme of distribution) {
-    if (theme.questionCount > 0) {
+  for (const d of distribution) {
+    if (d.questionCount > 0) {
+      const { level, theme } = getExactLevelAndTheme(d.theme);
       const examples = await examplesCollection
         .aggregate([
           {
             $match: {
-              level: "A1",
-              theme: `${theme.theme}`,
+              level: `${level}`,
+              theme: `${theme}`,
               status: "published",
             },
           },
-          { $sample: { size: theme.questionCount } }, // Randomly sample 7 documents
+          { $sample: { size: d.questionCount } }, // Randomly sample 7 documents
         ])
         .toArray();
 
@@ -93,3 +94,40 @@ const getGameExamples = async (distribution: ThemeDistribution[]) => {
 
   return uniqueExamples;
 };
+
+const getExactLevelAndTheme = (userLevel: number) => {
+  const level = LEVEL_SECTIONS.find(
+    (section) => section.min <= userLevel && section.max >= userLevel
+  )?.level;
+  const theme =
+    level === "B2"
+      ? userLevel - 35
+      : level === "B1"
+      ? userLevel - 20
+      : userLevel;
+
+  return { level, theme };
+};
+
+const LEVEL_SECTIONS = [
+  {
+    min: 1,
+    max: 10,
+    level: "A1",
+  },
+  {
+    min: 11,
+    max: 20,
+    level: "A2",
+  },
+  {
+    min: 21,
+    max: 35,
+    level: "B1",
+  },
+  {
+    min: 36,
+    max: 50,
+    level: "B2",
+  },
+];
