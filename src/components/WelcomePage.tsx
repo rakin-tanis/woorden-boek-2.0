@@ -177,13 +177,13 @@ const WelcomePage: React.FC = () => {
         <div className="flex justify-center space-x-4 mt-8">
           <Button
             variant="outline"
-            className="dark:border-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="dark:border-gray-600 dark:text-gray-300 hover:bg-white hover:text-gray-700 dark:hover:bg-gray-700"
             onClick={() => setActiveSection('main')}
           >
             Terug naar Hoofdmenu
           </Button>
           <Button
-            className="glow bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 "
+            className="glow bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 hover:bg-white dark:hover:bg-gray-700"
             onClick={() => router.push('/game')}
           >
             Start Spel
