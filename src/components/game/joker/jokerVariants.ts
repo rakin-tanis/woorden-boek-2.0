@@ -37,6 +37,7 @@ export type JokerButtonVariantsDetailValueType = {
   textColor: string;
   bgColor: string;
   color: string;
+  darkTextColor: string;
 };
 
 export const JokerButtonVariantsDetail: JokerButtonVariantsDetailType = {
@@ -47,6 +48,7 @@ export const JokerButtonVariantsDetail: JokerButtonVariantsDetailType = {
     textColor: "text-white",
     bgColor: "bg-blue-600",
     color: "blue-600",
+    darkTextColor: "text-blue-600",
   },
   purple: {
     enabled:
@@ -56,6 +58,7 @@ export const JokerButtonVariantsDetail: JokerButtonVariantsDetailType = {
     textColor: "text-white",
     bgColor: "bg-purple-600",
     color: "purple-600",
+    darkTextColor: "text-purple-600",
   },
   yellow: {
     enabled:
@@ -64,6 +67,7 @@ export const JokerButtonVariantsDetail: JokerButtonVariantsDetailType = {
     textColor: "text-white",
     bgColor: "bg-yellow-500",
     color: "yellow-500",
+    darkTextColor: "text-yellow-600",
   },
   lime: {
     enabled:
@@ -72,6 +76,7 @@ export const JokerButtonVariantsDetail: JokerButtonVariantsDetailType = {
     textColor: "text-white",
     bgColor: "bg-lime-600",
     color: "lime-600",
+    darkTextColor: "text-lime-600",
   },
   cyan: {
     enabled:
@@ -80,6 +85,7 @@ export const JokerButtonVariantsDetail: JokerButtonVariantsDetailType = {
     textColor: "text-white",
     bgColor: "bg-cyan-600",
     color: "cyan-600",
+    darkTextColor: "text-cyan-600",
   },
   orange: {
     enabled:
@@ -88,6 +94,7 @@ export const JokerButtonVariantsDetail: JokerButtonVariantsDetailType = {
     textColor: "text-white",
     bgColor: "bg-orange-600",
     color: "orange-600",
+    darkTextColor: "text-orange-600",
   },
   amber: {
     enabled:
@@ -96,6 +103,7 @@ export const JokerButtonVariantsDetail: JokerButtonVariantsDetailType = {
     textColor: "text-white",
     bgColor: "bg-amber-500",
     color: "amber-500",
+    darkTextColor: "text-amber-600",
   },
   green: {
     enabled:
@@ -104,6 +112,7 @@ export const JokerButtonVariantsDetail: JokerButtonVariantsDetailType = {
     textColor: "text-white",
     bgColor: "bg-green-600",
     color: "green-600",
+    darkTextColor: "text-green-600",
   },
   emerald: {
     enabled:
@@ -112,6 +121,7 @@ export const JokerButtonVariantsDetail: JokerButtonVariantsDetailType = {
     textColor: "text-white",
     bgColor: "bg-emerald-600",
     color: "emerald-600",
+    darkTextColor: "text-emerald-600",
   },
   teal: {
     enabled:
@@ -120,6 +130,7 @@ export const JokerButtonVariantsDetail: JokerButtonVariantsDetailType = {
     textColor: "text-white",
     bgColor: "bg-teal-600",
     color: "teal-600",
+    darkTextColor: "text-teal-600",
   },
   sky: {
     enabled:
@@ -128,6 +139,7 @@ export const JokerButtonVariantsDetail: JokerButtonVariantsDetailType = {
     textColor: "text-white",
     bgColor: "bg-sky-600",
     color: "sky-600",
+    darkTextColor: "text-sky-600",
   },
   indigo: {
     enabled:
@@ -136,6 +148,7 @@ export const JokerButtonVariantsDetail: JokerButtonVariantsDetailType = {
     textColor: "text-white",
     bgColor: "bg-indigo-600",
     color: "indigo-600",
+    darkTextColor: "text-indigo-600",
   },
   violet: {
     enabled:
@@ -144,6 +157,7 @@ export const JokerButtonVariantsDetail: JokerButtonVariantsDetailType = {
     textColor: "text-white",
     bgColor: "bg-violet-600",
     color: "violet-600",
+    darkTextColor: "text-violet-600",
   },
   fuchsia: {
     enabled:
@@ -152,6 +166,7 @@ export const JokerButtonVariantsDetail: JokerButtonVariantsDetailType = {
     textColor: "text-white",
     bgColor: "bg-fuchsia-600",
     color: "fuchsia-600",
+    darkTextColor: "text-fuchsia-600",
   },
   pink: {
     enabled:
@@ -160,6 +175,7 @@ export const JokerButtonVariantsDetail: JokerButtonVariantsDetailType = {
     textColor: "text-white",
     bgColor: "bg-pink-600",
     color: "pink-600",
+    darkTextColor: "text-pink-600",
   },
   rose: {
     enabled:
@@ -168,6 +184,7 @@ export const JokerButtonVariantsDetail: JokerButtonVariantsDetailType = {
     textColor: "text-white",
     bgColor: "bg-rose-600",
     color: "rose-600",
+    darkTextColor: "text-rose-600",
   },
   red: {
     enabled:
@@ -176,6 +193,7 @@ export const JokerButtonVariantsDetail: JokerButtonVariantsDetailType = {
     textColor: "text-white",
     bgColor: "bg-red-600",
     color: "red-600",
+    darkTextColor: "text-red-600",
   },
 };
 

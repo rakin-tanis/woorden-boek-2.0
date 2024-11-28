@@ -10,14 +10,11 @@ export const JokerWinAnimation: React.FC<{ jokers: { id: string, count: number }
 
   return (
     <div className="absolute inset-0 bottom-20 top-40 right-6 left-6 z-50 rounded-lg flex flex-row items-center justify-center gap-4 flex-wrap">
-      {/* <div className="p-20 rounded-full relative flex flex-row flex-wrap gap-4"> */}
 
       {jokers.map((joker, index) => {
         const newJoker = JOKERS.find(j => j.id === joker.id);
         const variant = newJoker?.variant || 'rose';
         const icon = newJoker?.icon || Circle
-        const textColor = 'text-' + (JokerButtonVariantsDetail[variant]?.color || 'text-white');
-        const bgClass = JokerButtonVariantsDetail[variant]?.bgColor
         return (
           <motion.div
             key={joker.id}
@@ -39,11 +36,11 @@ export const JokerWinAnimation: React.FC<{ jokers: { id: string, count: number }
             style={{
               textShadow: 'rgba(0,0,0,0.9) 0px 0px 3px',
             }}>
-            <div className={`${textColor} text-3xl font-bold font-mono`}>
+            <div className={`${JokerButtonVariantsDetail[variant]?.darkTextColor} text-3xl font-bold font-mono`}>
               +{joker.count}
             </div>
             {React.createElement(icon, {
-              className: `text-white ${bgClass} p-2 rounded-md w-10 h-12 animate-turnAround`,
+              className: `text-white ${JokerButtonVariantsDetail[variant]?.bgColor} p-2 rounded-md w-10 h-12 animate-turnAround`,
               style: {
                 filter: 'drop-shadow(0 0 4px rgba(0, 0, 0, 0.9))'
               }
@@ -51,7 +48,6 @@ export const JokerWinAnimation: React.FC<{ jokers: { id: string, count: number }
           </motion.div>
         )
       })}
-      {/* </div> */}
     </div >
   );
 };
