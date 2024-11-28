@@ -271,16 +271,16 @@ const WelcomePage: React.FC = () => {
           </motion.div>
         </motion.div>
 
-        <div className="flex justify-center space-x-4 mt-8">
+        <div className="flex justify-center mt-8 flex-col-reverse md:flex-row space-y-4 space-x-0 md:space-y-0 md:space-x-4 space-y-reverse">
           <Button
             variant="outline"
-            className="dark:border-gray-600 dark:text-gray-300 hover:bg-white hover:text-gray-700 dark:hover:bg-gray-700"
+            className="dark:border-gray-600 dark:text-gray-300 hover:bg-white hover:text-gray-700 dark:hover:bg-gray-700 w-full md:w-56"
             onClick={() => setActiveSection(session ? 'main' : 'signIn')}
           >
             Terug naar Hoofdmenu
           </Button>
           <Button
-            className="glow bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 hover:bg-white dark:hover:bg-gray-700"
+            className="glow bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 hover:bg-white dark:hover:bg-gray-700 w-full md:w-56"
             onClick={() => router.push('/game')}
           >
             Start Spel
