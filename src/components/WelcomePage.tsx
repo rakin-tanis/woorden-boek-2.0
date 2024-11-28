@@ -183,7 +183,7 @@ const WelcomePage: React.FC = () => {
             Terug naar Hoofdmenu
           </Button>
           <Button
-            className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white"
+            className="glow bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 "
             onClick={() => router.push('/game')}
           >
             Start Spel
