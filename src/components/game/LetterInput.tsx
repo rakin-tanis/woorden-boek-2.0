@@ -141,14 +141,16 @@ export const LetterInput: React.FC<LetterInputProps> = ({
   }
 
   useEffect(() => {
-    appliedJokers.map(j => {
-      j.indexes.map(index => {
-        const newAnswer = [...userAnswer];
-        newAnswer[index] = expectedAnswer[index].toLowerCase();
-        setUserAnswer(newAnswer)
-      })
+    appliedJokers
+      .filter(j => j.name === jokerEffectIds.SHOW_CORRECT_LETTERS)
+      .map(j => {
+        j.indexes.map(index => {
+          const newAnswer = [...userAnswer];
+          newAnswer[index] = expectedAnswer[index].toLowerCase();
+          setUserAnswer(newAnswer)
+        })
 
-    })
+      })
   }, [appliedJokers])
 
   const getInputStyle = useCallback((index: number) => {
