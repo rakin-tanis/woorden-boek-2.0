@@ -1,10 +1,9 @@
 "use client";
 
-import { signIn, signOut } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import {
-  LogIn,
   LogOut,
   User as UserIcon,
   Settings,
@@ -25,8 +24,10 @@ import { useState } from "react";
 import { toast } from "sonner";
 import Spinner from "./ui/Spinner";
 import { useRouter } from "next/navigation";
+import UserInfo from "./UserInfo";
+import SignInButton from "./SignInButton";
 
-const SignInOutButton = () => {
+const UserMenu = () => {
   const { data: session } = useSession();
   const { theme, setTheme } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
@@ -53,17 +54,7 @@ const SignInOutButton = () => {
   };
 
   if (!session) {
-    return (
-      <Button
-        variant="outline"
-        onClick={() => signIn()}
-        disabled={isLoading}
-        className="flex items-center gap-2"
-      >
-        <LogIn className="w-6 h-6" />
-        Sign In
-      </Button>
-    );
+    return (<SignInButton isLoading={isLoading} />)
   }
 
   return (
@@ -85,21 +76,7 @@ const SignInOutButton = () => {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="p-4 bg-white dark:bg-gray-900 text-black dark:text-white">
         <DropdownMenuLabel>
-          <div className="flex items-center space-x-2">
-            {session.user?.image && (
-              <Image
-                src={session.user.image}
-                alt="User profile"
-                width={32}
-                height={32}
-                className="rounded-full"
-              />
-            )}
-            <div>
-              <p className="text-sm font-medium">{session.user?.name}</p>
-              <p className="text-xs text-muted-foreground">{session.user?.email}</p>
-            </div>
-          </div>
+          <UserInfo />
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem
@@ -144,4 +121,4 @@ const SignInOutButton = () => {
 };
 
 
-export default SignInOutButton;
+export default UserMenu;
