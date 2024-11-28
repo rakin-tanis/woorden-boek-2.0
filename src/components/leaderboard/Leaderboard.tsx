@@ -6,24 +6,35 @@ import { useLeaderboard } from '@/hooks/useLeaderboard';
 import { leaderboardSections } from './leaderboardSections';
 import { motion } from 'framer-motion';
 import { Card } from '../ui/Card';
+import { usePlayer } from '@/hooks/usePlayer';
 
 export const Leaderboard: React.FC = () => {
 
   const { leaderboard, isLoading, error } = useLeaderboard();
+  const { player, isLoading: isPlayerLoading, error: playerError, } = usePlayer()
 
-  if (isLoading) {
-    return <div className="text-center text-white">Leaderboard loading...</div>;
+  if (isLoading || isPlayerLoading) {
+    return (
+      <Card className="max-w-2xl mx-auto p-6 text-center text-gray-950 dark:text-white z-30">
+        Loading leaderboard...
+      </Card>
+    );
   }
 
-  if (error) {
-    return <div className="text-center text-red-500">{error}</div>;
+  if (error || playerError) {
+    return (
+      <Card className="max-w-2xl mx-auto p-6 text-center text-gray-950 dark:text-white z-30">
+        {error || playerError}
+      </Card>
+    );
   }
 
-  const playerLevel = leaderboard?.currentPlayerRank || 1;
+  const playerLevel = player?.level || 1;
 
   const relevantSection = leaderboardSections.find(section =>
     playerLevel >= section.minLevel && playerLevel <= section.maxLevel
   );
+  console.log(playerLevel, relevantSection)
 
   const previousSections = leaderboardSections.filter(section =>
     section.maxLevel < (relevantSection?.minLevel || 0)
@@ -32,22 +43,6 @@ export const Leaderboard: React.FC = () => {
   const nextSections = leaderboardSections.filter(section =>
     section.minLevel > (relevantSection?.maxLevel || 0)
   );
-
-  if (isLoading) {
-    return (
-      <Card className="max-w-2xl mx-auto p-6 text-center text-gray-950 dark:text-white z-30">
-        Loading leaderboard...
-      </Card>
-    );
-  }
-
-  if (error) {
-    return (
-      <Card className="max-w-2xl mx-auto p-6 text-center text-gray-950 dark:text-white z-30">
-        {error}
-      </Card>
-    );
-  }
 
   return (
     <div className="space-y-6">
