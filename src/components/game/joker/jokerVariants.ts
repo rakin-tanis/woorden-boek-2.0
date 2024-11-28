@@ -221,7 +221,7 @@ export const JOKERS: ReadonlyArray<Joker> = [
     count: 3,
     disabled: false,
     variant: "rose",
-    animationVariant: "bubbly" as "bubbly",
+    animationVariant: "bubbly",
     icon: ShieldCheck,
   },
   {
@@ -232,7 +232,7 @@ export const JOKERS: ReadonlyArray<Joker> = [
     count: 3,
     disabled: false,
     variant: "orange",
-    animationVariant: "bubbly" as "bubbly",
+    animationVariant: "bubbly",
     icon: ShieldHalf,
   },
   {
@@ -243,7 +243,7 @@ export const JOKERS: ReadonlyArray<Joker> = [
     count: 3,
     disabled: false,
     variant: "amber",
-    animationVariant: "bubbly" as "bubbly",
+    animationVariant: "bubbly",
     icon: Shield,
   },
   {
@@ -254,7 +254,7 @@ export const JOKERS: ReadonlyArray<Joker> = [
     count: 1,
     disabled: false,
     variant: "blue",
-    animationVariant: "bubbly" as "bubbly",
+    animationVariant: "bubbly",
     icon: Clock,
   },
   {
@@ -265,7 +265,7 @@ export const JOKERS: ReadonlyArray<Joker> = [
     count: 5,
     disabled: false,
     variant: "green",
-    animationVariant: "bubbly" as "bubbly",
+    animationVariant: "bubbly",
     icon: Eye,
   },
 ];

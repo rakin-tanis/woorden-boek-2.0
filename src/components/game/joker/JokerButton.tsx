@@ -2,8 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { Button } from '../../ui/Button'
-import { Joker } from '@/hooks/useJokers'
-import { getJokerButtonVariantDetails, JokerButtonVariantsDetailValueType } from './jokerVariants'
+import { getJokerButtonVariantDetails, Joker, JokerButtonVariantsDetailValueType } from './jokerVariants'
 
 type JokerButtonProps = Pick<Joker,
   'name' |
