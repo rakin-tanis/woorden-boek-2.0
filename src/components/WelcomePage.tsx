@@ -8,15 +8,22 @@ import {
   Clock,
   Globe2,
   Lightbulb,
+  Medal,
   Play,
   Star,
+  Trophy,
+  UserPlus,
   Zap,
+  Lock,
+  ChevronLeft,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { JokerButtonVariantsDetail, JOKERS } from './game/joker/jokerVariants';
+import { useSession } from 'next-auth/react';
 
 const WelcomePage: React.FC = () => {
-  const [activeSection, setActiveSection] = useState<'main' | 'howToPlay'>('main');
+  const [activeSection, setActiveSection] = useState<'main' | 'signIn' | 'howToPlay'>('main');
+  const { data: session, status } = useSession();
   const router = useRouter();
 
   const containerVariants = {
@@ -64,7 +71,8 @@ const WelcomePage: React.FC = () => {
         className="flex justify-center space-x-4"
       >
         <Button
-          onClick={() => setActiveSection('howToPlay')}
+          // onClick={() => setActiveSection('howToPlay')}
+          onClick={() => setActiveSection(session ? 'howToPlay' : 'signIn')}
           className="flex items-center space-x-2 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white"
         >
           <Play className="w-5 h-5" />
@@ -73,6 +81,95 @@ const WelcomePage: React.FC = () => {
       </motion.div>
     </motion.div>
   );
+
+  const renderSignInSection = () => {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="space-y-8 max-w-4xl mx-auto bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/50 dark:to-blue-900/80 p-8 rounded-3xl shadow-2xl border border-blue-200 dark:border-blue-800"
+      >
+        <motion.div
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="text-center"
+        >
+          <h2 className="text-4xl font-extrabold mb-4 text-blue-800 dark:text-blue-200">
+            Ontgrendel Je Volledige Leerpotentieel!
+          </h2>
+          <p className="text-xl text-blue-700 dark:text-blue-300 mb-8">
+            Maak een account aan en krijg toegang tot geweldige functies
+          </p>
+        </motion.div>
+
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="grid md:grid-cols-3 gap-6"
+        >
+          <div className="bg-white dark:bg-blue-900/50 p-6 rounded-2xl shadow-lg text-center">
+            <Trophy className="mx-auto w-16 h-16 text-yellow-500 mb-4" />
+            <h3 className="font-bold text-xl mb-2 text-blue-800 dark:text-blue-200">Leaderboard</h3>
+            <p className="text-blue-700 dark:text-blue-300">
+              Bekijk je rang en concurreer met andere spelers
+            </p>
+          </div>
+
+          <div className="bg-white dark:bg-blue-900/50 p-6 rounded-2xl shadow-lg text-center">
+            <Medal className="mx-auto w-16 h-16 text-green-500 mb-4" />
+            <h3 className="font-bold text-xl mb-2 text-blue-800 dark:text-blue-200">Voortgang Opslaan</h3>
+            <p className="text-blue-700 dark:text-blue-300">
+              Ga verder waar je gebleven was in je taalleertraject
+            </p>
+          </div>
+
+          <div className="bg-white dark:bg-blue-900/50 p-6 rounded-2xl shadow-lg text-center">
+            <UserPlus className="mx-auto w-16 h-16 text-purple-500 mb-4" />
+            <h3 className="font-bold text-xl mb-2 text-blue-800 dark:text-blue-200">Gepersonaliseerd Leren</h3>
+            <p className="text-blue-700 dark:text-blue-300">
+              Volg je voortgang en ontvang aanbevelingen
+            </p>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center mt-8 space-y-4"
+        >
+          <p className="text-blue-800 dark:text-blue-200 font-semibold">
+            Klaar om je taalleerervaring te transformeren?
+          </p>
+          <div className="flex justify-center space-y-4 space-y-reverse md:space-x-4 md:space-y-0 md:flex-row flex-col-reverse pb-4">
+            <Button
+              variant="outline"
+              className="border-blue-500 text-blue-700 hover:bg-blue-100 dark:border-blue-400 dark:text-blue-300 flex justify-center items-center"
+              onClick={() => setActiveSection('main')}
+            >
+              <ChevronLeft className="mr-2 w-5 h-5" />
+              Terug
+            </Button>
+            <Button
+              className="bg-blue-600 hover:bg-blue-700 text-white flex justify-center items-center"
+              onClick={() => router.push('/auth/signIn')}
+            >
+              <Lock className="mr-2 w-5 h-5" />
+              Aanmelden
+            </Button>
+            <Button
+              variant="outline"
+              className="border-green-500 text-green-700 hover:bg-green-100 hover:text-green-900 dark:border-green-400 dark:text-green-300 flex justify-center items-center"
+              onClick={() => setActiveSection('howToPlay')}
+            >
+              <Play className="mr-2 w-5 h-5" />
+              Doorgaan zonder aanmelden
+            </Button>
+          </div>
+        </motion.div>
+      </motion.div>
+    );
+  };
 
 
   const renderHowToPlayModes = () => {
@@ -178,7 +275,7 @@ const WelcomePage: React.FC = () => {
           <Button
             variant="outline"
             className="dark:border-gray-600 dark:text-gray-300 hover:bg-white hover:text-gray-700 dark:hover:bg-gray-700"
-            onClick={() => setActiveSection('main')}
+            onClick={() => setActiveSection(session ? 'main' : 'signIn')}
           >
             Terug naar Hoofdmenu
           </Button>
@@ -197,6 +294,8 @@ const WelcomePage: React.FC = () => {
     switch (activeSection) {
       case 'main':
         return renderMainSection();
+      case 'signIn':
+        return renderSignInSection();
       case 'howToPlay':
         return renderHowToPlayModes();
     }
