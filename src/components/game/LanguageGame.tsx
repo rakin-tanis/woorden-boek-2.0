@@ -13,6 +13,7 @@ import { useGameExamplesFetch } from '@/hooks/useGameExamplesFetch';
 import { usePlayerFetch } from '@/hooks/usePlayerFetch';
 import { useJokers } from '@/hooks/useJokers';
 import { Joker, jokerIds } from './joker/jokerVariants';
+import { convertQuestionLevelToUserLevel } from '@/lib/game';
 
 
 const LanguageGame: React.FC = () => {
@@ -123,9 +124,9 @@ const LanguageGame: React.FC = () => {
   }, [gameState.gameStatus, gameState.level, gameState.score]);
 
   useEffect(() => {
-    if (gameState.questionStatus === "success") {
+    if (gameState.questionStatus === "success" && gameState.currentQuestion) {
       const userLevel = Number(gameState.level)
-      const questionLevel = Number(gameState.currentQuestion?.level)
+      const questionLevel = convertQuestionLevelToUserLevel(gameState.currentQuestion?.level, gameState.currentQuestion?.theme)
       addNewJokers(userLevel, questionLevel)
     }
   }, [gameState.questionStatus])

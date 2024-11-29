@@ -358,6 +358,54 @@ function groupBy<T>(array: T[]): Record<string, number> {
   }, {} as Record<string, number>);
 }
 
+const convertQuestionLevelToUserLevel = (level: string, theme: string) => {
+  switch(level){
+    case "B1":
+      return Number(theme) + 20;
+    case "B2":
+      return Number(theme) + 35
+    default: 
+      return Number(theme);
+  }
+}
+
+const convertUserLevelToQuestionLevel = (userLevel: number) => {
+  const level = LEVEL_SECTIONS.find(
+    (section) => section.min <= userLevel && section.max >= userLevel
+  )?.level;
+  const theme =
+    level === "B2"
+      ? userLevel - 35
+      : level === "B1"
+      ? userLevel - 20
+      : userLevel;
+
+  return { level, theme };
+};
+
+const LEVEL_SECTIONS = [
+  {
+    min: 1,
+    max: 10,
+    level: "A1",
+  },
+  {
+    min: 11,
+    max: 20,
+    level: "A2",
+  },
+  {
+    min: 21,
+    max: 35,
+    level: "B1",
+  },
+  {
+    min: 36,
+    max: 50,
+    level: "B2",
+  },
+];
+
 export {
   isAllowedLetter,
   calculateLevel,
@@ -366,7 +414,9 @@ export {
   getWrongWordsIndexes,
   getWrongLettersIndexes,
   getRandomSelections,
-  groupBy
+  groupBy,
+  convertUserLevelToQuestionLevel,
+  convertQuestionLevelToUserLevel
 };
 export type {
   QuestionDistribution,

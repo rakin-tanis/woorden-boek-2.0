@@ -1,7 +1,7 @@
 import clientPromise from "@/lib/mongodb";
 import { Example, ThemeDistribution } from "@/types";
 import { NextRequest, NextResponse } from "next/server";
-import { generateQuestionDistribution } from "@/lib/game";
+import { convertUserLevelToQuestionLevel, generateQuestionDistribution } from "@/lib/game";
 import { getServerSession } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
@@ -49,7 +49,7 @@ const getGameExamples = async (distribution: ThemeDistribution[]) => {
 
   for (const d of distribution) {
     if (d.questionCount > 0) {
-      const { level, theme } = getExactLevelAndTheme(d.theme);
+      const { level, theme } = convertUserLevelToQuestionLevel(d.theme);
       const examples = await examplesCollection
         .aggregate([
           {
@@ -95,39 +95,4 @@ const getGameExamples = async (distribution: ThemeDistribution[]) => {
   return uniqueExamples;
 };
 
-const getExactLevelAndTheme = (userLevel: number) => {
-  const level = LEVEL_SECTIONS.find(
-    (section) => section.min <= userLevel && section.max >= userLevel
-  )?.level;
-  const theme =
-    level === "B2"
-      ? userLevel - 35
-      : level === "B1"
-      ? userLevel - 20
-      : userLevel;
 
-  return { level, theme };
-};
-
-const LEVEL_SECTIONS = [
-  {
-    min: 1,
-    max: 10,
-    level: "A1",
-  },
-  {
-    min: 11,
-    max: 20,
-    level: "A2",
-  },
-  {
-    min: 21,
-    max: 35,
-    level: "B1",
-  },
-  {
-    min: 36,
-    max: 50,
-    level: "B2",
-  },
-];
