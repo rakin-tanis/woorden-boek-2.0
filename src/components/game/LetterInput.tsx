@@ -183,7 +183,7 @@ export const LetterInput: React.FC<LetterInputProps> = ({
       <div
         ref={containerRef}
         tabIndex={0}
-        className="flex flex-wrap gap-y-6 gap-x-14 justify-start items-start outline-none w-full"
+        className={`flex flex-wrap ${isMobile ?"gap-y-2" :'gap-y-6' } gap-x-10 justify-start items-start outline-none w-full`}
       >
         {originalWords.map((word, wordIndex) => {
           const wordLetters = word.split('');
@@ -224,7 +224,7 @@ export const LetterInput: React.FC<LetterInputProps> = ({
           return (
             <div
               key={wordIndex}
-              className="flex items-center justify-start gap-x-2 gap-y-6"
+              className="flex items-center justify-start gap-x-1 gap-y-6"
             >
               {wordInputs}
             </div>
