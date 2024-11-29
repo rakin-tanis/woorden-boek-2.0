@@ -23,7 +23,7 @@ import { useSession } from 'next-auth/react';
 
 const WelcomePage: React.FC = () => {
   const [activeSection, setActiveSection] = useState<'main' | 'signIn' | 'howToPlay'>('main');
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const router = useRouter();
 
   const containerVariants = {
