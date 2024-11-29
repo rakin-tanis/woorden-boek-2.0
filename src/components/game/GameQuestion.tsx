@@ -24,7 +24,7 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
   <div className="space-y-4">
     <div className="text-center text-gray-950 dark:text-white">
       <div className="text-sm text-gray-500 dark:text-gray-300 mb-2">
-        Level: {currentQuestion.level} - {currentQuestion.theme}
+        Niveau: {currentQuestion.level} - {currentQuestion.theme}
       </div>
       <div className="text-xl font-medium">{currentQuestion.turkish}</div>
     </div>

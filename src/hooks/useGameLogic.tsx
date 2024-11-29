@@ -17,6 +17,7 @@ export interface GameState {
   timeRemaining: number;
   gameStatus: 'loading' | 'playing' | 'finished';
   level: string;
+  oldLevel: string;
   report: { example: Example, result: string }[];
   feedback: string[];
   progress: number;
@@ -36,6 +37,7 @@ const initialState = {
   timeRemaining: 60,
   gameStatus: 'loading' as 'loading' | 'playing' | 'finished',
   level: '',
+  oldLevel: '',
   report: [] as { example: Example, result: string }[],
   feedback: [] as string[],
   progress: 0,
@@ -99,7 +101,8 @@ export const useGameLogic = () => {
             themeLevel: Number(r.example.theme),
             isCorrect: r.result === "success"
           })), Number(prevState.level))}`
-          : prevState.level
+          : prevState.level,
+        oldLevel: prevState.level,
       };
     })
   }, [])

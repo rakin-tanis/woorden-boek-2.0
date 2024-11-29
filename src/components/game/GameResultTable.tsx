@@ -10,9 +10,9 @@ export const GameResultsTable: React.FC<GameResultsTableProps> = ({ report }) =>
     <table className="w-full border-collapse">
       <thead>
         <tr className="bg-gray-100 dark:bg-gray-800">
-          <th className="border p-2 text-left">Level</th>
-          <th className="border p-2 text-left">Theme</th>
-          <th className="border p-2 text-left">Question</th>
+          <th className="border p-2 text-left">Niveau</th>
+          <th className="border p-2 text-left">Thema</th>
+          <th className="border p-2 text-left">Vraag</th>
           <th className="border p-2 text-left">Correct?</th>
         </tr>
       </thead>

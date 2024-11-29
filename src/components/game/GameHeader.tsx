@@ -17,7 +17,7 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
   <>
     <div className="flex justify-between items-center text-gray-950 dark:text-white">
       <div className="flex items-center space-x-2">
-        <span className="text-lg font-bold">Level:</span>
+        <span className="text-lg font-bold">Niveau:</span>
         <span className="text-lg font-bold">{level}</span>
         <Award className="w-5 h-5 text-yellow-500" />
       </div>

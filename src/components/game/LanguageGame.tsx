@@ -174,6 +174,7 @@ const LanguageGame: React.FC = () => {
       <GameFinished
         score={gameState.score}
         level={gameState.level}
+        oldLevel={gameState.oldLevel}
         report={gameState.report}
         onPlayAgain={handlePlayAgain}
       />
@@ -195,9 +196,6 @@ const LanguageGame: React.FC = () => {
           ${jokerEffects.filter(j => j.name === 'shaking')[0] ? 'animate-shake' : ''}
           `}
     >
-
-
-
 
       {/* Level, Score and Time display */}
       <GameHeader
