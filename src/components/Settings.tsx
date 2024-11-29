@@ -29,10 +29,10 @@ const Settings = () => {
 
   return (
     <div className="settings-container">
-      <h1 className="text-2xl font-bold">Settings</h1>
+      <h1 className="text-2xl font-bold dark:text-white">Settings</h1>
       <form onSubmit={handleSubmit} className="mt-4">
         <div>
-          <label htmlFor="playerName" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="playerName" className="block text-sm font-medium text-gray-700 dark:text-gray-400">
             Player Name
           </label>
           <input
@@ -40,7 +40,7 @@ const Settings = () => {
             id="playerName"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 dark:text-white"
             placeholder="Enter new player name"
           />
         </div>

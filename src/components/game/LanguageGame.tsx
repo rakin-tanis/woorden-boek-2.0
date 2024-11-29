@@ -16,14 +16,14 @@ import { Joker, jokerIds } from './joker/jokerVariants';
 import { convertQuestionLevelToUserLevel } from '@/lib/game';
 
 
-const LanguageGame: React.FC = () => {
+const LanguageGame: React.FC<{ mode: 'training' | 'competition' }> = ({ mode = 'competition' }) => {
   const { status: sessionStatus } = useSession();
   const { gameState, setGameState, showAnswer, nextQuestion, reset, addExtraTime } = useGameLogic();
   const { fetchGameExamples: fetchExamples } = useGameExamplesFetch();
   const { fetchPlayerDetails: fetchPlayer, updatePlayerDetails: updatePlayer } = usePlayerFetch();
 
   const { jokers, addNewJokers, reset: resetJokers, jokerEffects, resetEffects, newJokersAnimation } = useJokers();
-
+  console.log(mode)
   // Fetch game examples
   const fetchGameExamples = useCallback(async (level?: string) => {
     try {

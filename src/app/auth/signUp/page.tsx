@@ -37,14 +37,14 @@ export default function SignUp() {
     <div className="min-h-screen flex items-center justify-center">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="text-center text-3xl font-extrabold">Sign up</h2>
+          <h2 className="text-center text-3xl font-extrabold dark:text-white">Sign up</h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div>
             <input
               type="name"
               required
-              className="appearance-none rounded-md relative block w-full px-3 py-2 border dark:text-black"
+              className="appearance-none rounded-md relative block w-full px-3 py-2 border dark:text-white"
               placeholder="Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -54,7 +54,7 @@ export default function SignUp() {
             <input
               type="email"
               required
-              className="appearance-none rounded-md relative block w-full px-3 py-2 border dark:text-black"
+              className="appearance-none rounded-md relative block w-full px-3 py-2 border dark:text-white"
               placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -64,7 +64,7 @@ export default function SignUp() {
             <input
               type="password"
               required
-              className="appearance-none rounded-md relative block w-full px-3 py-2 border dark:text-black"
+              className="appearance-none rounded-md relative block w-full px-3 py-2 border dark:text-white"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

@@ -11,7 +11,7 @@ const page = () => {
             <div className="h-[6.4rem] w-full"></div>
 
             <div className="flex-grow px-2 py-4 scroll-pt-24 md:scroll-pt-36 scroll-pb-[33vh] flex items-center justify-center min-h-full">
-              <LanguageGame />
+              <LanguageGame mode='competition' />
             </div>
 
             {/* Keyboard height spacer */}

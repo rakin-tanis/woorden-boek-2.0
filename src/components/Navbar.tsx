@@ -38,6 +38,11 @@ const Navbar = () => {
       show: ["USER", "EDITOR", "ADMIN"].some(role => role === session?.user?.role?.toUpperCase()) && !getPathRegex('leaderboard').test(pathname),
     },
     {
+      label: "Training",
+      href: "/training",
+      show: ["TRAINING", "EDITOR", "ADMIN"].some(role => role === session?.user?.role?.toUpperCase()) && !getPathRegex('training').test(pathname),
+    },
+    {
       label: "Admin",
       href: "/admin",
       show: session?.user?.role?.toUpperCase() === "ADMIN" && !getPathRegex('admin').test(pathname),
@@ -178,7 +183,7 @@ const Navbar = () => {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex justify-between items-center p-4 border-b">
-                <UserInfo/>
+                <UserInfo />
 
                 <Button
                   variant="ghost"

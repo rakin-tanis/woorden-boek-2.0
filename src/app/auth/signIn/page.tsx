@@ -48,14 +48,14 @@ const SignInContent = () => {
     <div className="min-h-screen flex items-center justify-center">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="text-center text-3xl font-extrabold">Sign in</h2>
+          <h2 className="text-center text-3xl font-extrabold dark:text-white">Sign in</h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div>
             <input
               type="email"
               required
-              className="appearance-none rounded-md relative block w-full px-3 py-2 border dark:text-black"
+              className="appearance-none rounded-md relative block w-full px-3 py-2 border dark:text-white"
               placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -65,7 +65,7 @@ const SignInContent = () => {
             <input
               type="password"
               required
-              className="appearance-none rounded-md relative block w-full px-3 py-2 border dark:text-black"
+              className="appearance-none rounded-md relative block w-full px-3 py-2 border dark:text-white"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -80,7 +80,7 @@ const SignInContent = () => {
             </button>
           </div>
         </form>
-        <div className="text-center text-sm">
+        <div className="text-center text-sm dark:text-gray-400">
           <p>
             Don&apos;t have an account?{' '}
             <a

@@ -2,7 +2,11 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { MongoDBAdapter } from "@next-auth/mongodb-adapter";
-import clientPromise from "@/lib/mongodb";
+import clientPromise, {
+  findUserWithEmail,
+  insertNewPlayer,
+  updateLastLogin,
+} from "@/lib/mongodb";
 import bcrypt from "bcryptjs";
 import { ObjectId } from "mongodb";
 
@@ -94,24 +98,13 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ user, account }) {
       if (account?.provider === "google") {
-        const client = await clientPromise;
-        const usersCollection = client.db("woorden-boek").collection("users");
-
-        const existingUser = await usersCollection.findOne({
-          email: user.email,
-        });
+        const existingUser = await findUserWithEmail(user.email!);
 
         if (!existingUser) {
           user.role = "user";
           user.status = "ACTIVE";
           user.isEmailVerified = true;
         } else {
-          const lastLoginAt = new Date();
-          await usersCollection.updateOne(
-            { _id: new ObjectId(existingUser._id) },
-            { $set: { lastLoginAt } }
-          );
-
           user.role = existingUser.role;
           user.status = existingUser.status;
           user.isEmailVerified = existingUser.isEmailVerified;
@@ -153,12 +146,15 @@ export const authOptions: NextAuthOptions = {
   },
   events: {
     async signIn(message) {
+      await updateLastLogin(message.user.id!);
       console.log("Sign in successful", message);
     },
     async signOut(message) {
       console.log("Sign out successful", message);
     },
     async createUser(message) {
+      await insertNewPlayer(message.user.name || "player", message.user.id!);
+      await updateLastLogin(message.user.id!);
       console.log("User created", message);
     },
   },
