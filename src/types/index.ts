@@ -2,6 +2,42 @@ export interface MongoDBId {
   $oid: string;
 }
 
+export const operatorTypes = [
+  "eq",
+  "neq",
+  "gt",
+  "gte",
+  "lt",
+  "lte",
+  "in",
+  "nin",
+  "contains",
+  "startsWith",
+  "endsWith",
+  "matches"
+] as const;
+
+export type OperatorType = typeof operatorTypes[number]
+
+export interface Condition {
+  attribute: string;
+  operator: OperatorType;
+  value: string | number | boolean | null | undefined | object;
+}
+
+export interface Permission {
+  _id?: string;
+  resource: string;
+  action: string;
+  conditions?: Condition[];
+}
+
+export interface Role {
+  _id?: string;
+  name: string;
+  permissions: Permission[];
+}
+
 export interface User {
   _id: string;
   name: string;
@@ -10,6 +46,7 @@ export interface User {
   lastLoginAt: string;
   provider: string;
   role: string;
+  roles: string[];
   image: string;
   status: string;
   isEmailVerified: boolean;
