@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/Input';
 import {
   Table,
@@ -18,11 +18,14 @@ import { toast } from 'sonner';
 import { User } from '@/types';
 import { Modal } from '../ui/Modal';
 import EditUser from './EditUser';
+import { Button } from '../ui/Button';
+import { Drama } from 'lucide-react';
 
 
 
 export default function UserPanel() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { data: session } = useSession();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -264,6 +267,15 @@ export default function UserPanel() {
             confirmText={'Are you sure you want to delete this user?'}
             handleDeleteConfirm={handleDeleteConfirm}
             handleDeleteCancel={() => setShowDeleteModal(false)} />
+
+          <Button
+            variant='outline'
+            className='flex gap-2'
+            onClick={() => router.push("/admin/roles")}
+          >
+            <Drama className='w-5 h-5 ' />
+            USER ROLES
+          </Button>
         </>
       )}
     </div>
