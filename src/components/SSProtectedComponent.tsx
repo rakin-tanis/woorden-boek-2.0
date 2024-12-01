@@ -1,16 +1,17 @@
-import { getServerSession } from '@/lib/auth';
+import { serverCheckPermission } from '@/lib/auth';
+import { getServerSession } from '@/lib/session';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
 interface ServerAuthProps {
   children: React.ReactNode;
-  allowedRoles: string[];
+  allowedPermissions: { action: string, resource: string }[];
   redirectToLogin?: boolean;
 }
 
 export default async function SSProtectedComponent({
   children,
-  allowedRoles,
+  allowedPermissions,
   redirectToLogin = false
 }: ServerAuthProps) {
   const session = await getServerSession();
@@ -25,10 +26,11 @@ export default async function SSProtectedComponent({
     return
   }
 
-  const userRole = session?.user?.role;
-  const hasRequiredRole = userRole && allowedRoles.includes(userRole);
+  // const hasRequiredPermission = true
+  const hasRequiredPermission = allowedPermissions
+    ?.some(async (p) => await serverCheckPermission(session.user, p.action, p.resource));
 
-  if (!hasRequiredRole) {
+  if (!hasRequiredPermission) {
     if (redirectToLogin) {
       redirect(`/auth/signIn?callbackUrl=${encodedCallbackUrl}`);
     }

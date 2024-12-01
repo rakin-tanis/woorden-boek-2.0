@@ -20,7 +20,6 @@ const ManageRoles: React.FC = () => {
   };
 
   const handleSubmitRole = (role: Role) => {
-    console.log(role)
     if (role._id) {
       updateRole(role);
     } else {

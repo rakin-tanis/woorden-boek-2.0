@@ -1,37 +1,35 @@
 import "next-auth";
 
 declare module "next-auth" {
-  interface Session {
-    user: {
-      id?: string;
-      email?: string;
-      role?: string;
-      image?: string;
-      name?: string;
-      status?: string;
-      isEmailVerified: boolean;
-      level?: string;
-    };
+  interface User {
+    id: string;
+    name?: string;
+    email?: string;
+    image?: string;
+    createdAt?: string;
+    lastLoginAt?: string;
+    provider?: string;
+    roles?: Role[];
+    isEmailVerified?: boolean;
+    status?: string;
   }
 
-  interface User {
-    id?: string;
-    email?: string;
-    role?: string;
-    image?: string;
-    name?: string;
-    status?: string;
-    isEmailVerified: boolean;
-    level?: string;
+  interface Session {
+    user: User & DefaultSession["user"];
   }
-  interface Profile {
-    id?: string;
-    email?: string;
-    role?: string;
-    image?: string;
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    id: string;
     name?: string;
+    email?: string;
+    image?: string;
+    createdAt?: string;
+    lastLoginAt?: string;
+    provider?: string;
+    roles?: Role[];
+    isEmailVerified?: boolean;
     status?: string;
-    isEmailVerified: boolean;
-    level?: string;
   }
 }

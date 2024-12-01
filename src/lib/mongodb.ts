@@ -1,3 +1,4 @@
+import { Role, User } from "@/types";
 import { MongoClient, ObjectId } from "mongodb";
 
 if (!process.env.MONGODB_URI) {
@@ -27,11 +28,11 @@ if (process.env.NODE_ENV === "development") {
 
 export default clientPromise;
 
-export const findUserWithEmail = async (email: string) => {
+export const findUserWith = async (filter: Record<string, string>) => {
   try {
     const client = await clientPromise;
     const usersCollection = client.db("woorden-boek").collection("users");
-    const user = await usersCollection.findOne({ email });
+    const user = await usersCollection.findOne(filter);
     return user;
   } catch (error) {
     console.error("Find user error: ", error);
@@ -54,7 +55,87 @@ export const updateLastLogin = async (userId: string) => {
   }
 };
 
-export const insertNewPlayer = async (playerName: string, userId: string) => {
+const roleCache = new Map<string, Role>();
+
+export const fetchFullUserRole = async (roleNames: string[]) => {
+  try {
+    const fullRoles: Role[] = [];
+
+    for (const roleName of roleNames) {
+      // Check cache first
+      if (roleCache.has(roleName?.trim())) {
+        fullRoles.push(roleCache.get(roleName?.trim())!);
+        continue;
+      }
+
+      const client = await clientPromise;
+      const rolesCollection = client.db("woorden-boek").collection("roles");
+
+      const role = await rolesCollection.findOne({ name: roleName?.trim() });
+
+      if (role) {
+        const fullRole: Role = role as unknown as Role;
+
+        // Cache the role
+        roleCache.set(roleName?.trim(), fullRole);
+        fullRoles.push(fullRole);
+      }
+    }
+
+    return fullRoles;
+  } catch (error) {
+    console.error("Full user role fetching error: ", error);
+    throw new Error("Full user role fetching error: " + error);
+  }
+};
+
+export const initializeUser = async ({
+  name,
+  email,
+  image,
+  isEmailVerified,
+  roles,
+  provider,
+}: {
+  name: string;
+  email: string;
+  image: string;
+  isEmailVerified: boolean;
+  roles: string[];
+  provider: string;
+}) => {
+  try {
+    let user = await findUserWith({ email, provider });
+
+    const client = await clientPromise;
+    const usersCollection = client.db("woorden-boek").collection("users");
+
+    if (!user) {
+      const newUser = {
+        name: name,
+        email: email,
+        image: image,
+        roles: roles, // Default roles
+        createdAt: new Date().toISOString(),
+        lastLoginAt: new Date().toISOString(),
+        provider: "google",
+        isEmailVerified: isEmailVerified || false,
+        status: "ACTIVE",
+      };
+      const result = await usersCollection.insertOne(newUser);
+      user = { ...newUser, _id: result.insertedId };
+    } else {
+      await updateLastLogin(user._id.toHexString());
+    }
+
+    return user as unknown as User;
+  } catch (error) {
+    console.error("Initial user insert error: ", error);
+    throw new Error("Initial user insert error: " + error);
+  }
+};
+
+export const insertNewPlayer = async (userId: string, playerName?: string) => {
   try {
     const client = await clientPromise;
     const playersCollection = client.db("woorden-boek").collection("players");
@@ -82,7 +163,7 @@ export const insertNewPlayer = async (playerName: string, userId: string) => {
     }
 
     // Generate a unique player name
-    const uniquePlayerName = await generateUniqueName(playerName);
+    const uniquePlayerName = await generateUniqueName(playerName || "Player");
 
     await playersCollection.insertOne({
       userId: userId,

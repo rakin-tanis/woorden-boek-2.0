@@ -4,7 +4,7 @@ import React from 'react'
 
 const page = () => {
   return (
-    <SSProtectedComponent allowedRoles={['user', 'editor', 'admin']} redirectToLogin={true}>
+    <SSProtectedComponent  allowedPermissions={[{ resource: 'player', action: 'view' }]} redirectToLogin={true}>
       <div className="min-h-screen overflow-auto">
         <main className="relative">
           <div className="min-h-screen flex flex-col">

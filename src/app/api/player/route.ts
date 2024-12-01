@@ -1,4 +1,4 @@
-import { getServerSession } from "@/lib/auth";
+import { getServerSession } from "@/lib/session";
 import clientPromise from "@/lib/mongodb";
 import { Player } from "@/types";
 import { NextRequest, NextResponse } from "next/server";

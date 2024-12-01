@@ -1,11 +1,12 @@
 import { leaderboardSections } from "@/components/leaderboard/leaderboardSections";
-import { getServerSession } from "@/lib/auth";
+import { getServerSession } from "@/lib/session";
 import clientPromise from "@/lib/mongodb";
 import { NextResponse } from "next/server";
 
 export async function GET() {
+  console.log("GET api/leaderboard");
   const session = await getServerSession();
-
+  // const session = { user: { id: ''}}
   if (!session?.user)
     return NextResponse.json({ message: "unauthorized" }, { status: 401 });
 

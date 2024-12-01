@@ -2,7 +2,7 @@ import clientPromise from "@/lib/mongodb";
 import { Example, ThemeDistribution } from "@/types";
 import { NextRequest, NextResponse } from "next/server";
 import { convertUserLevelToQuestionLevel, generateQuestionDistribution } from "@/lib/game";
-import { getServerSession } from "@/lib/auth";
+import { getServerSession } from "@/lib/session";
 
 export async function GET(request: NextRequest) {
   try {

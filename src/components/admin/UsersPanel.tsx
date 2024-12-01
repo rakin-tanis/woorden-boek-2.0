@@ -214,7 +214,7 @@ export default function UserPanel() {
                       <a
                         className={`hover:border-b-2 hover:border-b-blue-400 text-blue-900 dark:text-blue-400 ${user._id === session?.user.id ? 'opacity-50 cursor-not-allowed' : 'opacity-100 cursor-pointer'}`}
                         onClick={() => editUser(user)}
-                        aria-disabled={user._id === session!.user.id}
+                        aria-disabled={user._id === session?.user.id}
                       >
                         Edit
                       </a>

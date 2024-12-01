@@ -1,6 +1,7 @@
 // hooks/useRolesApi.ts
 import { Role } from '@/types';
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 
 
 const useRoles = () => {
@@ -13,11 +14,13 @@ const useRoles = () => {
   }, []);
 
   const fetchRoles = async () => {
+    console.log('fetch roles')
     try {
       const response = await fetch('/api/roles');
       if (!response.ok) throw new Error('Failed to fetch roles');
       const data = await response.json();
       setRoles(data);
+      return data
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
@@ -56,10 +59,11 @@ const useRoles = () => {
         body: JSON.stringify(role),
       });
       if (!response.ok) throw new Error('Failed to update role');
-      const updatedRole = await response.json();
-      setRoles((prev) =>
-        prev.map((r) => (r._id === updatedRole._id ? updatedRole : r))
-      );
+      const data = await response.json();
+      toast.success("Success", {
+        description: data.message,
+      })
+      setRoles((prev) => prev.map(r => r._id === role._id ? role : r));
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
@@ -85,7 +89,7 @@ const useRoles = () => {
     }
   };
 
-  return { roles, loading, error, addRole, updateRole, deleteRole };
+  return { roles, loading, error, fetchRoles, addRole, updateRole, deleteRole };
 };
 
 export default useRoles;

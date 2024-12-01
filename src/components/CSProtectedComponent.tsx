@@ -1,18 +1,19 @@
 'use client';
 
+import { checkPermission } from '@/lib/auth';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 interface ClientAuthProps {
   children: React.ReactNode;
-  allowedRoles: string[];
+  allowedPermissions: { action: string, resource: string }[];
   redirectToLogin?: boolean;
 }
 
 export default function ClientAuth({
   children,
-  allowedRoles,
+  allowedPermissions,
   redirectToLogin = true
 }: ClientAuthProps) {
   const { data: session, status } = useSession();
@@ -20,16 +21,17 @@ export default function ClientAuth({
 
   useEffect(() => {
     if (status === 'loading') return;
+    if (!session) return
 
-    const userRole = session?.user?.role;
-    const hasRequiredRole = userRole && allowedRoles.includes(userRole);
+    const hasRequiredRole = allowedPermissions
+      ?.some(p => checkPermission(session.user, p.action, p.resource));
 
     if (!hasRequiredRole && redirectToLogin) {
       const currentPath = window.location.pathname;
       const encodedCallbackUrl = encodeURIComponent(currentPath);
       router.push(`/auth/signIn?callbackUrl=${encodedCallbackUrl}`);
     }
-  }, [session, status, allowedRoles, redirectToLogin, router]);
+  }, [session, status, allowedPermissions, redirectToLogin, router]);
 
   if (status === 'loading') {
     return <div>Loading...</div>;
@@ -42,8 +44,10 @@ export default function ClientAuth({
     return
   }
 
-  const userRole = session?.user?.role;
-  const hasRequiredRole = userRole && allowedRoles.includes(userRole);
+  if (!session) return
+
+  const hasRequiredRole = allowedPermissions
+    ?.some(p => checkPermission(session.user, p.action, p.resource));
 
   if (!hasRequiredRole) {
     if (redirectToLogin) {

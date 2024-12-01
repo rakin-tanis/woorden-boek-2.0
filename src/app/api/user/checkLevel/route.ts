@@ -1,5 +1,5 @@
 import clientPromise from "@/lib/mongodb";
-import { getServerSession } from "@/lib/auth";
+import { getServerSession } from "@/lib/session";
 import { NextResponse } from "next/server";
 
 export async function GET() {

@@ -21,6 +21,7 @@ import Spinner from "./ui/Spinner";
 import { useRouter } from "next/navigation";
 import UserMenu from "./UserMenu";
 import UserInfo from "./UserInfo";
+import { useAuth } from "@/hooks/useAuth";
 
 const Navbar = () => {
   const { data: session } = useSession();
@@ -29,28 +30,33 @@ const Navbar = () => {
   const { theme, setTheme } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const [hasPermissionTraining] = useAuth("view", "trainingPage")
+  const [hasPermissionLeaderboard] = useAuth("view", "leaderboardPage")
+  const [hasPermissionAdmin] = useAuth("view", "adminPage")
+  const [hasPermissionEditor] = useAuth("view", "editorPage")
+
 
   const menuItems = [
     { label: "Home", href: "/", show: pathname !== '/' },
     {
       label: "Leaderboard",
       href: "/leaderboard",
-      show: ["USER", "EDITOR", "ADMIN"].some(role => role === session?.user?.role?.toUpperCase()) && !getPathRegex('leaderboard').test(pathname),
+      show: hasPermissionLeaderboard && !getPathRegex('leaderboard').test(pathname),
     },
     {
       label: "Training",
       href: "/training",
-      show: ["TRAINING", "EDITOR", "ADMIN"].some(role => role === session?.user?.role?.toUpperCase()) && !getPathRegex('training').test(pathname),
-    },
-    {
-      label: "Admin",
-      href: "/admin",
-      show: session?.user?.role?.toUpperCase() === "ADMIN" && !getPathRegex('admin').test(pathname),
+      show: hasPermissionTraining && !getPathRegex('training').test(pathname),
     },
     {
       label: "Editor",
       href: "/admin",
-      show: session?.user?.role?.toUpperCase() === "EDITOR" && !getPathRegex('admin').test(pathname),
+      show: hasPermissionEditor && !getPathRegex('admin').test(pathname),
+    },
+    {
+      label: "Admin",
+      href: "/admin",
+      show: hasPermissionAdmin && !getPathRegex('admin').test(pathname),
     },
   ].filter(item => item.show);
 

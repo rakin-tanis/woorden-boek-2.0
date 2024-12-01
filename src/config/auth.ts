@@ -3,12 +3,11 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { MongoDBAdapter } from "@next-auth/mongodb-adapter";
 import clientPromise, {
-  findUserWithEmail,
+  fetchFullUserRole,
   insertNewPlayer,
   updateLastLogin,
 } from "@/lib/mongodb";
 import bcrypt from "bcryptjs";
-import { ObjectId } from "mongodb";
 
 export const authOptions: NextAuthOptions = {
   adapter: MongoDBAdapter(clientPromise, { databaseName: "woorden-boek" }),
@@ -16,17 +15,19 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      profile(profile) {
+      async profile(profile) {
+        const defaultRoleNames = ["USER"];
+
         return {
           id: profile.sub,
-          image: profile.picture,
-          email: profile.email,
           name: profile.name,
-          role: "user", // Default role for Google sign-ins
+          email: profile.email,
+          image: profile.picture,
+          createdAt: new Date().toString(),
+          lastLoginAt: new Date().toString(),
+          roles: defaultRoleNames,
           status: "ACTIVE",
           isEmailVerified: true,
-          createdAt: new Date(),
-          lastLoginAt: new Date(),
           provider: "google",
         };
       },
@@ -44,7 +45,7 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error("Invalid credentials");
+          throw new Error("Invalid input");
         }
 
         const client = await clientPromise;
@@ -55,7 +56,7 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!user || !user.password) {
-          throw new Error("Invalid credentials");
+          throw new Error("User not found");
         }
 
         const isValid = await bcrypt.compare(
@@ -70,24 +71,20 @@ export const authOptions: NextAuthOptions = {
         if (user.status !== "ACTIVE") {
           throw new Error("Account is not active");
         }
-
-        const lastLoginAt = new Date();
-        await usersCollection.updateOne(
-          { _id: new ObjectId(user._id) },
-          { $set: { lastLoginAt } }
-        );
+        const fullRoles = await fetchFullUserRole(user.roles);
+        await updateLastLogin(user._id.toString());
 
         return {
           id: user._id.toString(),
-          image: user.image,
-          email: user.email,
           name: user.name,
-          role: user.role,
+          email: user.email,
+          createdAt: user.createdAt || new Date().toISOString(),
+          lastLoginAt: new Date().toISOString(), // Update last login time
+          provider: "credentials",
+          roles: fullRoles,
+          image: user.image,
+          isEmailVerified: user.isEmailVerified || false,
           status: user.status,
-          isEmailVerified: user.emailVerified,
-          createdAt: user.createdAt,
-          lastLoginAt: lastLoginAt,
-          provider: "google",
         };
       },
     }),
@@ -96,37 +93,66 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   callbacks: {
-    async signIn({ user, account }) {
+    /* async signIn({ user, account }) {
       if (account?.provider === "google") {
         const existingUser = await findUserWithEmail(user.email!);
 
         if (!existingUser) {
           user.role = "user";
+          user.roles = ["USER"];
           user.status = "ACTIVE";
           user.isEmailVerified = true;
         } else {
           user.role = existingUser.role;
+          user.roles = [existingUser.role];
           user.status = existingUser.status;
           user.isEmailVerified = existingUser.isEmailVerified;
         }
       }
       return true;
-    },
+    }, */
     async jwt({ token, user }) {
+      // console.log("jwt callback ---------> ", token, user);
       if (user) {
-        token.role = user.role;
-        token.id = user.id;
-        token.status = user.status;
-        token.isEmailVerified = user.isEmailVerified;
+        // Spread all user fields, ensuring only full Role objects are used
+        return {
+          ...token,
+          ...user,
+        };
       }
+
+      // For existing sessions, ensure roles are up to date
+      if (
+        token.roles &&
+        token.roles.length > 0 &&
+        token.roles.some((r) => typeof r === "string")
+      ) {
+        const updatedRoles = await fetchFullUserRole(token.roles);
+
+        return {
+          ...token,
+          roles: updatedRoles.filter((role) => role !== null),
+        };
+      }
+
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.role = token.role as string;
-        session.user.id = token.id as string;
-        session.user.status = token.status as string;
-        session.user.isEmailVerified = token.isEmailVerified as boolean;
+        // Spread token properties, ensuring only full Role objects are used
+        session.user = {
+          ...session.user,
+          id: token.id,
+          name: token.name,
+          email: token.email,
+          createdAt: token.createdAt,
+          lastLoginAt: token.lastLoginAt,
+          provider: token.provider,
+          roles: token.roles,
+          image: token.image,
+          isEmailVerified: token.isEmailVerified,
+          status: token.status,
+        };
       }
       return session;
     },
@@ -147,15 +173,15 @@ export const authOptions: NextAuthOptions = {
   events: {
     async signIn(message) {
       await updateLastLogin(message.user.id!);
-      console.log("Sign in successful", message);
+      console.log("evens ----> Sign in successful", message);
     },
     async signOut(message) {
-      console.log("Sign out successful", message);
+      console.log("evens ----> Sign out successful", message);
     },
     async createUser(message) {
-      await insertNewPlayer(message.user.name || "player", message.user.id!);
+      await insertNewPlayer(message.user.id!, message.user.name);
       await updateLastLogin(message.user.id!);
-      console.log("User created", message);
+      console.log("evens ----> User created", message);
     },
   },
   pages: {

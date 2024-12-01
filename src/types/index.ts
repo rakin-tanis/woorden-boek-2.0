@@ -18,6 +18,7 @@ export const operatorTypes = [
 ] as const;
 
 export type OperatorType = typeof operatorTypes[number]
+export type ResourceType = Record<string, unknown>;
 
 export interface Condition {
   attribute: string;
@@ -47,7 +48,7 @@ export interface User {
   provider: string;
   role: string;
   roles: string[];
-  image: string;
+  image?: string;
   status: string;
   isEmailVerified: boolean;
 }
