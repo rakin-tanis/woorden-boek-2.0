@@ -124,3 +124,8 @@ export interface AppliedJoker {
   name: string;
   indexes: number[];
 }
+
+export interface Option {
+  value: string
+  label: string
+}
