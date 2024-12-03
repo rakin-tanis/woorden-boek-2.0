@@ -89,7 +89,7 @@ export const useGameLogic = ({ mode, trainingSource, trainingLevel, trainingThem
           { example: gameState.currentQuestion, result: isCorrect ? "success" : "failed" }
         ],
         feedback: feedbackMessage,
-        progress: Math.min(prevState.progress + 10, 100),
+        progress: Math.min(prevState.progress + (100 / prevState.examples.length), 100),
         isAnswerSubmitted: true,
         isTimerRunning: false,
       };
