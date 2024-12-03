@@ -31,13 +31,13 @@ const LanguageGame: React.FC<LanguageGameProps> = ({
 }) => {
   const { status: sessionStatus } = useSession();
   const { gameState, setGameState, showAnswer, nextQuestion, reset, addExtraTime } = useGameLogic({ mode, trainingSource: source, trainingLevel: level, trainingThemes: themes });
-  const { fetchGameExamples: fetchExamples, fetchTrainingExamples } = useGameExamplesFetch();
+  const { fetchGameExamples, fetchTrainingExamples } = useGameExamplesFetch();
   const { fetchPlayerDetails: fetchPlayer, updatePlayerDetails: updatePlayer } = usePlayerFetch();
 
   const { jokers, addNewJokers, reset: resetJokers, jokerEffects, resetEffects, newJokersAnimation } = useJokers();
   console.log(mode)
   // Fetch game examples
-  const fetchGameExamples = useCallback(async (playerLevel?: string) => {
+  const fetchExamples = useCallback(async (playerLevel?: string) => {
     try {
       // Only fetch if session is loaded
       if (sessionStatus === 'loading') {
@@ -50,7 +50,7 @@ const LanguageGame: React.FC<LanguageGameProps> = ({
       }
 
       const examples = mode === 'competition'
-        ? await fetchExamples(playerLevel)
+        ? await fetchGameExamples(playerLevel)
         : await fetchTrainingExamples(source!, level!, themes!);
 
       if (examples && examples.length > 0) {
@@ -72,7 +72,7 @@ const LanguageGame: React.FC<LanguageGameProps> = ({
       console.error('Error fetching game examples:', error);
       setGameState(state => ({ ...state, gameStatus: 'finished' }));
     }
-  }, [sessionStatus, fetchExamples])
+  }, [sessionStatus, fetchGameExamples, fetchTrainingExamples])
 
   // Fetch player details function
   const fetchPlayerDetails = useCallback(async () => {
@@ -104,7 +104,7 @@ const LanguageGame: React.FC<LanguageGameProps> = ({
         const level = await fetchPlayerDetails();
 
         // Then, fetch game examples
-        await fetchGameExamples(level?.toString());
+        await fetchExamples(level?.toString());
       } catch (error) {
         console.error('Error fetching initial game data:', error);
         // Optionally set game status to finished in case of error
@@ -119,7 +119,7 @@ const LanguageGame: React.FC<LanguageGameProps> = ({
   useEffect(() => {
     let isMounted = true;
     const updatePlayerDetails = async () => {
-      if (gameState.gameStatus === 'finished' && isMounted) {
+      if (gameState.mode === 'competition' && gameState.gameStatus === 'finished' && isMounted) {
         try {
           await updatePlayer({
             level: Number(gameState.level),
@@ -159,12 +159,12 @@ const LanguageGame: React.FC<LanguageGameProps> = ({
     resetJokers();
 
     try {
-      await fetchGameExamples(gameState.level);
+      await fetchExamples(gameState.level);
     } catch (error) {
       console.error('Error fetching game examples:', error);
       setGameState(state => ({ ...state, gameStatus: 'finished' }));
     }
-  }, [fetchGameExamples, gameState.level, gameState.score, reset, resetJokers, setGameState]);
+  }, [fetchExamples, gameState.level, gameState.score, reset, resetJokers, setGameState]);
 
 
   const jokerAction = (joker: Joker) => {
