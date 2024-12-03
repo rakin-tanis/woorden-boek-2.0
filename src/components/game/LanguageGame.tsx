@@ -15,17 +15,29 @@ import { useJokers } from '@/hooks/useJokers';
 import { Joker, jokerIds } from './joker/jokerVariants';
 import { convertQuestionLevelToUserLevel } from '@/lib/game';
 
+export interface LanguageGameProps {
+  mode: 'training' | 'competition',
+  source?: string,
+  level?: string,
+  themes?: string[]
+}
 
-const LanguageGame: React.FC<{ mode: 'training' | 'competition' }> = ({ mode = 'competition' }) => {
+
+const LanguageGame: React.FC<LanguageGameProps> = ({
+  mode = 'competition',
+  source,
+  level,
+  themes
+}) => {
   const { status: sessionStatus } = useSession();
-  const { gameState, setGameState, showAnswer, nextQuestion, reset, addExtraTime } = useGameLogic();
-  const { fetchGameExamples: fetchExamples } = useGameExamplesFetch();
+  const { gameState, setGameState, showAnswer, nextQuestion, reset, addExtraTime } = useGameLogic({ mode, trainingSource: source, trainingLevel: level, trainingThemes: themes });
+  const { fetchGameExamples: fetchExamples, fetchTrainingExamples } = useGameExamplesFetch();
   const { fetchPlayerDetails: fetchPlayer, updatePlayerDetails: updatePlayer } = usePlayerFetch();
 
   const { jokers, addNewJokers, reset: resetJokers, jokerEffects, resetEffects, newJokersAnimation } = useJokers();
   console.log(mode)
   // Fetch game examples
-  const fetchGameExamples = useCallback(async (level?: string) => {
+  const fetchGameExamples = useCallback(async (playerLevel?: string) => {
     try {
       // Only fetch if session is loaded
       if (sessionStatus === 'loading') {
@@ -37,7 +49,9 @@ const LanguageGame: React.FC<{ mode: 'training' | 'competition' }> = ({ mode = '
         return;
       }
 
-      const examples = await fetchExamples(level);
+      const examples = mode === 'competition'
+        ? await fetchExamples(playerLevel)
+        : await fetchTrainingExamples(source!, level!, themes!);
 
       if (examples && examples.length > 0) {
         setGameState(state => ({

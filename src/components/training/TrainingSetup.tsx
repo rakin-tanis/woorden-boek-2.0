@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { Option } from '@/types'
 import { Card } from '../ui/Card'
+import LanguageGame from '../game/LanguageGame'
 
 // Define icons for each category
 const categoryIcons: { [K in string]: React.ReactElement<LucideIcon> } = {
@@ -64,11 +65,11 @@ export default function TrainingSetup() {
 
   // Handle option selection
   const handleOptionSelect = (
-    category: FilterCategory, 
+    category: FilterCategory,
     value: string
   ) => {
     const currentStepData = steps[currentStep]
-  
+
     if (category === 'sources') {
       updateSelectedFilters('sources', [value])
       updateSelectedFilters('levels', [])
@@ -81,7 +82,7 @@ export default function TrainingSetup() {
       const newValues = currentValues.includes(value)
         ? currentValues.filter(v => v !== value)
         : [...currentValues, value]
-  
+
       updateSelectedFilters(category, newValues)
     }
   }
@@ -200,6 +201,14 @@ export default function TrainingSetup() {
     );
   }
 
+  if (currentStep === 3)
+    return <LanguageGame
+      mode={'training'}
+      source={selectedFilters.sources[0]}
+      level={selectedFilters.levels[0]}
+      themes={selectedFilters.themes}
+    />
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <motion.div
@@ -264,7 +273,7 @@ export default function TrainingSetup() {
             </button>
           ) : (
             <button
-              onClick={() => { console.log('game starting', selectedFilters) }}
+              onClick={() => { setCurrentStep(3) }}
               disabled={!isGameReady}
               className="ml-auto px-6 py-2 bg-green-500 text-white rounded-lg 
               flex items-center space-x-2

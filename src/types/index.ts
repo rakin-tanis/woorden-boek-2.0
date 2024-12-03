@@ -46,7 +46,6 @@ export interface User {
   createdAt: string;
   lastLoginAt: string;
   provider: string;
-  role: string;
   roles: string[];
   image?: string;
   status: string;

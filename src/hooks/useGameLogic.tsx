@@ -8,6 +8,10 @@ type ExcludeField = {
 }
 
 export interface GameState {
+  mode: 'competition' | 'training'
+  trainingSource?: string,
+  trainingLevel?: string,
+  trainingThemes?: string[],
   examples: Example[],
   userAnswer: string;
   currentQuestionIndex: number;
@@ -28,6 +32,10 @@ export interface GameState {
 }
 
 const initialState = {
+  mode: 'training',
+  trainingSource: 'blue',
+  trainingLevel: '1',
+  trainingThemes: ['1'],
   examples: [] as Example[],
   userAnswer: '',
   currentQuestionIndex: 0,
@@ -46,8 +54,15 @@ const initialState = {
   isTimerRunning: false,
 }
 
-export const useGameLogic = () => {
-  const [gameState, setGameState] = useState<GameState>(initialState);
+export interface useGameLogicProps {
+  mode: 'training' | 'competition';
+  trainingSource?: string;
+  trainingLevel?: string;
+  trainingThemes?: string[];
+}
+
+export const useGameLogic = ({ mode, trainingSource, trainingLevel, trainingThemes }: useGameLogicProps) => {
+  const [gameState, setGameState] = useState<GameState>({ ...initialState, mode, trainingSource, trainingLevel, trainingThemes });
 
   const isAnswerCorrect = useCallback(() => {
     const cleanedInput = gameState.userAnswer.toLowerCase().trim();
@@ -97,10 +112,12 @@ export const useGameLogic = () => {
         isTimerRunning: !isFinished,
         gameStatus: isFinished ? 'finished' : prevState.gameStatus,
         level: isFinished
-          ? `${calculateLevel(prevState.report.map(r => ({
-            themeLevel: Number(r.example.theme),
-            isCorrect: r.result === "success"
-          })), Number(prevState.level))}`
+          ? mode === 'competition'
+            ? `${calculateLevel(prevState.report.map(r => ({
+              themeLevel: Number(r.example.theme),
+              isCorrect: r.result === "success"
+            })), Number(prevState.level))}`
+            : prevState.level
           : prevState.level,
         oldLevel: prevState.level,
       };
@@ -108,7 +125,7 @@ export const useGameLogic = () => {
   }, [])
 
   const reset = useCallback((exclude?: ExcludeField) => {
-    setGameState({ ...initialState, ...exclude })
+    setGameState({ ...initialState, mode, trainingSource, trainingLevel, trainingThemes, ...exclude })
   }, [])
 
   const addExtraTime = useCallback((seconds: number) => {
