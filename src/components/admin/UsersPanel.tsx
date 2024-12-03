@@ -119,7 +119,7 @@ export default function UserPanel() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          role: user.role,
+          roles: user.roles,
           status: user.status
         })
       });
@@ -132,7 +132,7 @@ export default function UserPanel() {
       setUsers(prev => {
         return prev.map(u => {
           if (u._id == user._id) {
-            u.role = user.role;
+            u.roles = user.roles;
             u.status = user.status
           }
           return u;
@@ -200,7 +200,7 @@ export default function UserPanel() {
                   </TableCell> */}
                     <TableCell>{user.name}</TableCell>
                     <TableCell>{user.email}</TableCell>
-                    <TableCell>{user.role?.toUpperCase()}</TableCell>
+                    <TableCell>{user.roles?.join(', ')}</TableCell>
                     <TableCell>{user.provider?.toUpperCase()}</TableCell>
                     <TableCell>{user.status?.toUpperCase()}</TableCell>
                     <TableCell>{user.isEmailVerified ? "YES" : "NO"}</TableCell>

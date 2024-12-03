@@ -4,7 +4,8 @@ import { useState, useEffect, ChangeEvent } from 'react';
 import { Button } from '@/components/ui/Button';
 import { User } from '@/types';
 import Image from "next/image";
-import { CircleUserRound } from 'lucide-react';
+import { Check, CircleUserRound } from 'lucide-react';
+import useRoles from '@/hooks/useRoles';
 
 interface EditUserProps {
   user?: User
@@ -14,16 +15,26 @@ interface EditUserProps {
 }
 
 export default function EditUser({ user, isLoading, updateUser, cancel }: EditUserProps) {
-  const [role, setRole] = useState('');
+  const [roles, setRoles] = useState<string[]>([]);
   const [status, setStatus] = useState('');
+  const { roles: roleOptions, loading, error } = useRoles();
 
   useEffect(() => {
-    setRole(user?.role || "");
+    setRoles(user?.roles || []);
     setStatus(user?.status || "");
   }, [user])
 
-  const handleRoleChange = (event: ChangeEvent) => {
-    setRole(((event.target) as HTMLInputElement).value);
+  useEffect(() => {
+    setRoles(user?.roles || []);
+    setStatus(user?.status || "");
+  }, [user])
+
+  const toggleRole = (role: string) => {
+    setRoles(prevRoles =>
+      prevRoles.includes(role)
+        ? prevRoles.filter(r => r !== role)
+        : [...prevRoles, role]
+    );
   };
 
   const handleStatusChange = (event: ChangeEvent) => {
@@ -33,7 +44,7 @@ export default function EditUser({ user, isLoading, updateUser, cancel }: EditUs
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (user) {
-      updateUser({ ...user, role, status })
+      updateUser({ ...user, roles, status })
     }
   };
 
@@ -103,19 +114,34 @@ export default function EditUser({ user, isLoading, updateUser, cancel }: EditUs
           </label>
         </div>
         <div>
-          <label htmlFor="role" className="block text-sm font-medium text-gray-400">
-            Role
+          <label className="block text-sm font-medium text-gray-400 mb-2">
+            Roles
           </label>
-          <select
-            id="role"
-            value={role}
-            onChange={handleRoleChange}
-            className="dark:text-black mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          >
-            <option value="user">User</option>
-            <option value="editor">Editor</option>
-            <option value="admin">Admin</option>
-          </select>
+          {loading ?
+            <div>Loading</div>
+            : error ?
+              <div>{error}</div>
+              : <div className="flex flex-wrap gap-2">
+                {roleOptions.map((role) => (
+                  <button
+                    key={role._id}
+                    type="button"
+                    onClick={() => toggleRole(role.name)}
+                    className={`
+                  flex items-center px-3 py-1 rounded-full text-sm 
+                  transition-colors duration-200 ease-in-out
+                  ${roles.includes(role.name)
+                        ? 'bg-indigo-600 text-white'
+                        : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'}
+                `}
+                  >
+                    {roles.includes(role.name) && (
+                      <Check className="w-4 h-4 mr-1" />
+                    )}
+                    {role.name}
+                  </button>
+                ))}
+              </div>}
         </div>
         <div>
           <label htmlFor="status" className="block text-sm font-medium text-gray-400">
