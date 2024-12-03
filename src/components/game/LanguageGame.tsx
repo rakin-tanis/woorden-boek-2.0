@@ -87,7 +87,7 @@ const LanguageGame: React.FC<LanguageGameProps> = ({
         setGameState(prevState => ({
           ...prevState,
           level: playerDetails.level?.toString() || '1',
-          score: playerDetails.score || 0
+          score: mode === 'competition' ? playerDetails.score || 0 : 0
         }));
         return playerDetails.level;
       }
