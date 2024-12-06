@@ -1,14 +1,16 @@
 // hooks/gameHooks.ts
 import { useState, useCallback, useEffect } from 'react';
-import { Example } from '@/types';
+import { Example, GAME_MODE, GameModeType } from '@/types';
 import { calculateLevel } from '@/lib/game';
 
 type ExcludeField = {
   [key: string]: string | number | boolean | null | undefined
 }
 
+
+
 export interface GameState {
-  mode: 'competition' | 'training'
+  mode: GameModeType
   trainingSource?: string,
   trainingLevel?: string,
   trainingThemes?: string[],
@@ -55,7 +57,7 @@ const initialState = {
 }
 
 export interface useGameLogicProps {
-  mode: 'training' | 'competition';
+  mode: GameModeType;
   trainingSource?: string;
   trainingLevel?: string;
   trainingThemes?: string[];
@@ -112,7 +114,7 @@ export const useGameLogic = ({ mode, trainingSource, trainingLevel, trainingThem
         isTimerRunning: !isFinished,
         gameStatus: isFinished ? 'finished' : prevState.gameStatus,
         level: isFinished
-          ? mode === 'competition'
+          ? mode === GAME_MODE.COMPETITION
             ? `${calculateLevel(prevState.report.map(r => ({
               themeLevel: Number(r.example.theme),
               isCorrect: r.result === "success"
@@ -139,7 +141,7 @@ export const useGameLogic = ({ mode, trainingSource, trainingLevel, trainingThem
 
   // Timer effect
   useEffect(() => {
-    if (gameState.gameStatus !== 'playing' || !gameState.isTimerRunning) return;
+    if (gameState.mode != GAME_MODE.COMPETITION || gameState.gameStatus !== 'playing' || !gameState.isTimerRunning) return;
 
     let timer: NodeJS.Timeout;
     if (gameState.timeRemaining > 0) {
@@ -153,7 +155,7 @@ export const useGameLogic = ({ mode, trainingSource, trainingLevel, trainingThem
     }
 
     return () => clearInterval(timer);
-  }, [gameState.timeRemaining, gameState.gameStatus, gameState.isTimerRunning, showAnswer]);
+  }, [gameState.mode, gameState.timeRemaining, gameState.gameStatus, gameState.isTimerRunning, showAnswer]);
 
   return {
     gameState,

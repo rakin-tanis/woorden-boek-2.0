@@ -2,6 +2,13 @@ export interface MongoDBId {
   $oid: string;
 }
 
+export const GAME_MODE = {
+  COMPETITION: 'competition',
+  TRAINING: 'training'
+} as const;
+type GameModeKeys = keyof typeof GAME_MODE
+export type GameModeType = typeof GAME_MODE[GameModeKeys];
+
 export const operatorTypes = [
   "eq",
   "neq",

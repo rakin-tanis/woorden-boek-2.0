@@ -14,9 +14,10 @@ import { usePlayerFetch } from '@/hooks/usePlayerFetch';
 import { useJokers } from '@/hooks/useJokers';
 import { Joker, jokerIds } from './joker/jokerVariants';
 import { convertQuestionLevelToUserLevel } from '@/lib/game';
+import { GAME_MODE, GameModeType } from '@/types';
 
 export interface LanguageGameProps {
-  mode: 'training' | 'competition',
+  mode: GameModeType,
   source?: string,
   level?: string,
   themes?: string[]
@@ -24,7 +25,7 @@ export interface LanguageGameProps {
 
 
 const LanguageGame: React.FC<LanguageGameProps> = ({
-  mode = 'competition',
+  mode = GAME_MODE.COMPETITION,
   source,
   level,
   themes
@@ -35,7 +36,7 @@ const LanguageGame: React.FC<LanguageGameProps> = ({
   const { fetchPlayerDetails: fetchPlayer, updatePlayerDetails: updatePlayer } = usePlayerFetch();
 
   const { jokers, addNewJokers, reset: resetJokers, jokerEffects, resetEffects, newJokersAnimation } = useJokers();
-  console.log(mode)
+
   // Fetch game examples
   const fetchExamples = useCallback(async (playerLevel?: string) => {
     try {
@@ -49,7 +50,7 @@ const LanguageGame: React.FC<LanguageGameProps> = ({
         return;
       }
 
-      const examples = mode === 'competition'
+      const examples = mode === GAME_MODE.COMPETITION
         ? await fetchGameExamples(playerLevel)
         : await fetchTrainingExamples(source!, level!, themes!);
 
@@ -87,7 +88,7 @@ const LanguageGame: React.FC<LanguageGameProps> = ({
         setGameState(prevState => ({
           ...prevState,
           level: playerDetails.level?.toString() || '1',
-          score: mode === 'competition' ? playerDetails.score || 0 : 0
+          score: mode === GAME_MODE.COMPETITION ? playerDetails.score || 0 : 0
         }));
         return playerDetails.level;
       }
@@ -119,7 +120,7 @@ const LanguageGame: React.FC<LanguageGameProps> = ({
   useEffect(() => {
     let isMounted = true;
     const updatePlayerDetails = async () => {
-      if (gameState.mode === 'competition' && gameState.gameStatus === 'finished' && isMounted) {
+      if (gameState.mode === GAME_MODE.COMPETITION && gameState.gameStatus === 'finished' && isMounted) {
         try {
           await updatePlayer({
             level: Number(gameState.level),
@@ -214,6 +215,7 @@ const LanguageGame: React.FC<LanguageGameProps> = ({
 
       {/* Level, Score and Time display */}
       <GameHeader
+        gameMode={gameState.mode}
         level={gameState.level.toString()}
         score={gameState.score}
         timeRemaining={gameState.timeRemaining}

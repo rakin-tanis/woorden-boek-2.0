@@ -1,7 +1,9 @@
 import { Award, Coins, Timer } from "lucide-react";
 import { Progress } from "../ui/Progress";
+import { GAME_MODE, GameModeType } from "@/types";
 
 interface GameHeaderProps {
+  gameMode: GameModeType
   level: string;
   score: number;
   timeRemaining: number;
@@ -9,6 +11,7 @@ interface GameHeaderProps {
 }
 
 export const GameHeader: React.FC<GameHeaderProps> = ({
+  gameMode,
   level = "?",
   score = 0,
   timeRemaining,
@@ -25,10 +28,10 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
         <Coins className="w-5 h-5 text-yellow-500" />
         <span className="font-bold">{score}</span>
       </div>
-      <div className="flex items-center space-x-2">
+      {gameMode === GAME_MODE.COMPETITION && <div className="flex items-center space-x-2">
         <span className="font-medium">{timeRemaining}s</span>
         <Timer className="w-5 h-5 text-blue-500" />
-      </div>
+      </div>}
     </div>
     <Progress value={progress} className="w-full" />
   </>
