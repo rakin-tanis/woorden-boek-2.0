@@ -35,7 +35,7 @@ const LanguageGame: React.FC<LanguageGameProps> = ({
   const { fetchGameExamples, fetchTrainingExamples } = useGameExamplesFetch();
   const { fetchPlayerDetails: fetchPlayer, updatePlayerDetails: updatePlayer } = usePlayerFetch();
 
-  const { jokers, addNewJokers, reset: resetJokers, jokerEffects, resetEffects, newJokersAnimation } = useJokers();
+  const { jokers, addNewJokers, reset: resetJokers, jokerEffects, resetEffects, newJokersAnimation } = useJokers({ gameMode: mode });
 
   // Fetch game examples
   const fetchExamples = useCallback(async (playerLevel?: string) => {
@@ -142,7 +142,7 @@ const LanguageGame: React.FC<LanguageGameProps> = ({
     if (gameState.questionStatus === "success" && gameState.currentQuestion) {
       const userLevel = Number(gameState.level)
       const questionLevel = convertQuestionLevelToUserLevel(gameState.currentQuestion?.level, gameState.currentQuestion?.theme)
-      addNewJokers(userLevel, questionLevel)
+      addNewJokers(gameState.mode, userLevel, questionLevel, gameState.currentQuestion?.level)
     }
   }, [gameState.questionStatus])
 

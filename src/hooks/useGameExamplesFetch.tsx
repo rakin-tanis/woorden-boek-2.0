@@ -21,7 +21,7 @@ export const useGameExamplesFetch = () => {
       if (!data.examples) {
         throw new Error('No examples found');
       }
-      console.log('examples fetched', data.examples)
+
       return data.examples;
 
     } catch (error) {
@@ -34,7 +34,7 @@ export const useGameExamplesFetch = () => {
     try {
       const url = new URL('/api/training', window.location.origin)
       url.searchParams.set('source', source)
-      url.searchParams.set('level',level)
+      url.searchParams.set('level', level)
       themes.forEach(theme =>
         url.searchParams.append('themes', theme)
       )
@@ -55,7 +55,7 @@ export const useGameExamplesFetch = () => {
       if (!data.examples) {
         throw new Error('No training examples found');
       }
-      console.log('training examples fetched', data.examples)
+
       return data.examples;
 
     } catch (error) {

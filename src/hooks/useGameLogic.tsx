@@ -1,4 +1,3 @@
-// hooks/gameHooks.ts
 import { useState, useCallback, useEffect } from 'react';
 import { Example, GAME_MODE, GameModeType } from '@/types';
 import { calculateLevel } from '@/lib/game';

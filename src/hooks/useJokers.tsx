@@ -4,13 +4,14 @@ import { getRandomSelections, getWrongLettersIndexes, getWrongWordsIndexes, grou
 import { JokerWinAnimation } from '@/components/game/joker/JokerWinAnimation';
 import { AnimatePresence } from 'framer-motion';
 import { Joker, jokerEffectIds, jokerIds, JOKERS } from '@/components/game/joker/jokerVariants';
+import { GAME_MODE, GameModeType } from '@/types';
 
 interface NewJoker {
   id: string,
   count: number,
 }
 
-export const useJokers = () => {
+export const useJokers = ({ gameMode }: { gameMode: GameModeType }) => {
   const initialState: Joker[] = [
     ...JOKERS.map(joker => {
       if (joker.id === jokerIds.SHOW_WRONG_LETTERS) {
@@ -48,7 +49,8 @@ export const useJokers = () => {
     })
   ]
 
-  const [jokers, setJokers] = useState<Joker[]>(initialState);
+  const initialJokers = gameMode === GAME_MODE.TRAINING ? initialState.filter(j => j.id !== jokerIds.TIME) : initialState
+  const [jokers, setJokers] = useState<Joker[]>(initialJokers);
   const [newJokers, setNewJokers] = useState<NewJoker[]>([]);
   const [jokerEffects, setJokerEffects] = useState<{ name: string, indexes: number[] }[]>([])
 
@@ -174,9 +176,24 @@ export const useJokers = () => {
 
   }, [])
 
-  const addNewJokers = (userLevel: number, questionLevel: number) => {
-    const jokerNumber = questionLevel > userLevel ? 3 : questionLevel === userLevel ? 2 : 1
-    const jokerPool = [...JOKERS.map(j => j.id)]
+  const addNewJokers = (gameMode: GameModeType, userLevel: number, questionLevel: number, level: string) => {
+    const initialJokerNumber = level === "A1"
+      ? 1
+      : level === "A2"
+        ? 3
+        : level === "B1"
+          ? 5
+          : 7;
+    const questionLevelDifferenceJoker = questionLevel > userLevel
+      ? initialJokerNumber + 2
+      : questionLevel === userLevel
+        ? initialJokerNumber + 1
+        : initialJokerNumber
+    const jokerNumber = initialJokerNumber + questionLevelDifferenceJoker;
+
+    const jokerPool = gameMode === GAME_MODE.COMPETITION
+      ? [...JOKERS.map(j => j.id)]
+      : [...JOKERS.filter(j => j.id !== jokerIds.TIME).map(j => j.id)]
 
     const randomSelectedJokers = getRandomSelections(jokerPool, jokerNumber, { allowDuplicates: true })
     const groupedByJokers = groupBy(randomSelectedJokers)

@@ -3,8 +3,8 @@ import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
 import { GameResultsTable } from "./GameResultTable";
 import { getMotivationPhrase } from "@/lib/game";
-import Confetti from 'react-confetti'; // Import the confetti library
-import { useWindowSize } from 'react-use'; // Optional: for responsive confetti
+import Confetti from 'react-confetti';
+import { useWindowSize } from 'react-use';
 
 interface GameFinishedProps {
   score: number;
@@ -21,7 +21,7 @@ export const GameFinished: React.FC<GameFinishedProps> = ({
   report,
   onPlayAgain
 }) => {
-  const { width, height } = useWindowSize(); // Optional: for responsive confetti
+  const { width, height } = useWindowSize();
   const levelIncreased = Number(level) > Number(oldLevel);
   const levelNotChanged = Number(level) === Number(oldLevel);
 
