@@ -26,9 +26,9 @@ export default async function SSProtectedComponent({
     return
   }
 
-  // const hasRequiredPermission = true
-  const hasRequiredPermission = allowedPermissions
-    ?.some(async (p) => await serverCheckPermission(session.user, p.action, p.resource));
+  const hasRequiredPermission = await Promise.all(
+    allowedPermissions?.map(async (p) => await serverCheckPermission(session.user, p.action, p.resource))
+  ).then(results => results.some(result => result));
 
   if (!hasRequiredPermission) {
     if (redirectToLogin) {
