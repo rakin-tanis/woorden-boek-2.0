@@ -7,12 +7,14 @@ import React, { useState } from 'react';
 import RoleForm from './RoleForm';
 import RolesList from './RoleList';
 import { Card } from '../ui/Card';
+import { useRouter } from 'next/navigation';
 
 const ManageRoles: React.FC = () => {
   const { roles, loading, error, addRole, updateRole, deleteRole } = useRoles();
   const { permissions, loading: permLoading, error: permError } = usePermissions();
   const [selectedRole, setSelectedRole] = useState<Role | null>();
   const [isRoleFormOpen, setIsRoleFormOpen] = useState<boolean>(false)
+  const router = useRouter()
 
   const handleEditRole = (role: Role | null) => {
     setSelectedRole(role);
@@ -42,7 +44,7 @@ const ManageRoles: React.FC = () => {
       {isRoleFormOpen ? (
         <RoleForm role={selectedRole} permissions={permissions} onSubmit={handleSubmitRole} onCancel={onCancel} />
       ) : (
-        <RolesList roles={roles} onEdit={handleEditRole} onDelete={deleteRole} />
+        <RolesList roles={roles} onEdit={handleEditRole} onDelete={deleteRole} onCancel={() => router.back()} />
       )}
     </Card>
   );

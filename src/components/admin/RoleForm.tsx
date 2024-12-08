@@ -60,7 +60,7 @@ const RoleForm: React.FC<RoleFormProps> = ({ role, onSubmit, onCancel, permissio
   };
 
   return (
-    <div className="p-4 rounded-lg shadow-md w-[760px]">
+    <div className="p-4 rounded-lg shadow-md w-[800px]">
       <h2 className="text-2xl font-bold mb-4 dark:text-gray-200">{role ? 'Edit Role' : 'Add New Role'}</h2>
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
@@ -162,7 +162,7 @@ const RoleForm: React.FC<RoleFormProps> = ({ role, onSubmit, onCancel, permissio
                     <TableCell>
                       {selectedPermission && <button
                         type="button"
-                        onClick={() => handleConditionChange(permission, [...(conditions || []), { attribute: '', value: '' } as Condition])}
+                        onClick={() => handleConditionChange(permission, [...(conditions || []), { attribute: '', value: '', operator: 'eq' } as Condition])}
                         className="text-blue-500 align-top"
                       >
                         <ClipboardPlus className="w-6 h-6" />

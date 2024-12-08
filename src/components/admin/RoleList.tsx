@@ -10,7 +10,7 @@ import {
 import { Button } from "../ui/Button";
 import { FilePenLine, Trash2 } from "lucide-react";
 
-const RolesList: React.FC<{ roles: Role[]; onEdit: (role: Role | null) => void; onDelete: (roleId: string) => void; }> = ({ roles, onEdit, onDelete }) => {
+const RolesList: React.FC<{ roles: Role[]; onEdit: (role: Role | null) => void; onDelete: (roleId: string) => void; onCancel: () => void }> = ({ roles, onEdit, onDelete, onCancel }) => {
   return (
     <div className="p-4 rounded-lg shadow-md w-[644px]">
       <h2 className="text-2xl font-bold mb-4 dark:text-gray-300">Roles</h2>
@@ -62,7 +62,15 @@ const RolesList: React.FC<{ roles: Role[]; onEdit: (role: Role | null) => void; 
         </TableBody>
       </Table>
 
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-4">
+        <Button
+          variant='outline'
+          onClick={() => onCancel()}
+          className="mt-4"
+        >
+          Cancel
+
+        </Button>
         <Button
           variant='default'
           onClick={() => onEdit(null)}
