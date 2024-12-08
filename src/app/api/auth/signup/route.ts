@@ -26,14 +26,14 @@ export async function POST(req: NextRequest) {
       name,
       email,
       password: hashedPassword,
-      role: "user",
+      roles: ["USER"],
       createdAt: new Date(),
       status: "ACTIVE",
       emailVerified: false,
       provider: "credentials",
     });
 
-    await insertNewPlayer(name, result.insertedId.toString());
+    await insertNewPlayer(result.insertedId.toString(), name);
 
     return NextResponse.json(
       { message: "User created successfully" },
