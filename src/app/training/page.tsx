@@ -1,33 +1,48 @@
+import LanguageGame from '@/components/game/LanguageGame'
 import SSProtectedComponent from '@/components/SSProtectedComponent'
-import TrainingSetup from '@/components/training/TrainingSetup'
+import { checkIsMobile } from '@/lib/utils'
+import { headers } from 'next/headers'
 import React from 'react'
 
-const page = () => {
+
+type PageProps = {
+  searchParams: {
+    [key: string]: string | string[] | undefined
+  }
+}
+
+const page = async ({ searchParams }: PageProps) => {
+  const params = await searchParams;
+  const source = (params['source'] as string) || "green"
+  const level = (params['level'] as string) || '1'
+  const themes = params['themes']
+    ? Array.isArray(params['themes'])
+      ? params['themes']
+      : [params['themes']]
+    : ['1']
+
+  const isMobile = checkIsMobile((await headers()).get('user-agent') || '');
+
   return (
-    <SSProtectedComponent allowedPermissions={[{ resource: 'trainingPage', action: 'view' }]}  redirectToLogin={true}>
-      <div className="min-h-screen overflow-auto">
-        <main className="relative">
-          <div className="min-h-screen flex flex-col">
-            <div className="relative min-h-screen flex flex-col">
-              {/* Header height spacer */}
-              <div className="h-[6.4rem] w-full"></div>
+    <SSProtectedComponent allowedPermissions={[{ resource: 'trainingPage', action: 'view' }]} redirectToLogin={true}>
 
-              <div className="flex-grow px-2 py-4 scroll-pt-24 md:scroll-pt-36 scroll-pb-[33vh] flex items-center justify-center min-h-full">
-                <TrainingSetup/>
-              </div>
+      <LanguageGame
+        mode={'training'}
+        source={source}
+        level={level}
+        themes={themes}
+      />
 
-              {/* Keyboard height spacer */}
-              <div
-                className="-z-50 h-[33vh] w-full"
-                style={{
-                  // Dynamically set height to match actual keyboard
-                  height: `calc(var(--keyboard-height, 33vh))`
-                }}
-              ></div>
-            </div>
-          </div>
-        </main>
-      </div>
+      {/* Keyboard height spacer */}
+      {
+        isMobile && <div
+          className="-z-50 h-[33vh] w-full"
+          style={{
+            // Dynamically set height to match actual keyboard
+            height: `calc(var(--keyboard-height, 33vh))`
+          }}
+        ></div>
+      }
     </SSProtectedComponent>
   )
 }

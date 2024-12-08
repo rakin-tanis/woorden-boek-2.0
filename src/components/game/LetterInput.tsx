@@ -232,11 +232,13 @@ export const LetterInput: React.FC<LetterInputProps> = ({
         })}
       </div>
       {/* Add the on-screen keyboard */}
-      {isMobile && <OnScreenKeyboard
-        onKeyPress={handleKeyPress}
-        onBackspace={handleBackspace}
-        onEnter={onEnter}
-      />}
+      {
+        isMobile && <OnScreenKeyboard
+          onKeyPress={handleKeyPress}
+          onBackspace={handleBackspace}
+          onEnter={onEnter}
+        />
+      }
     </>
   );
 }

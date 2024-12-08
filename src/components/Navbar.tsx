@@ -45,8 +45,8 @@ const Navbar = () => {
     },
     {
       label: "Training",
-      href: "/training",
-      show: hasPermissionTraining && !getPathRegex('training').test(pathname),
+      href: "/trainingSetup",
+      show: hasPermissionTraining && !getPathRegex('trainingSetup').test(pathname),
     },
     {
       label: "Editor",

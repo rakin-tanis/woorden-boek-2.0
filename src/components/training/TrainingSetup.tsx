@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { Option } from '@/types'
 import { Card } from '../ui/Card'
-import LanguageGame from '../game/LanguageGame'
+import { useRouter } from 'next/navigation'
 
 // Define icons for each category
 const categoryIcons: { [K in string]: React.ReactElement<LucideIcon> } = {
@@ -35,6 +35,7 @@ export default function TrainingSetup() {
     errors
   } = useFilterOptions()
 
+  const router = useRouter();
   // Track current step
   const [currentStep, setCurrentStep] = useState(0)
 
@@ -105,6 +106,16 @@ export default function TrainingSetup() {
     if (currentStep > 0) {
       setCurrentStep(prev => prev - 1)
     }
+  }
+
+  const play = () => {
+    const url = new URL('/training', window.location.origin)
+    url.searchParams.set('source', selectedFilters.sources[0])
+    url.searchParams.set('level', selectedFilters.levels[0])
+    selectedFilters.themes.forEach(theme =>
+      url.searchParams.append('themes', theme)
+    )
+    router.push(url.toString())
   }
 
   // Render current step options
@@ -201,16 +212,16 @@ export default function TrainingSetup() {
     );
   }
 
-  if (currentStep === 3)
+  /* if (currentStep === 3)
     return <LanguageGame
       mode={'training'}
       source={selectedFilters.sources[0]}
       level={selectedFilters.levels[0]}
       themes={selectedFilters.themes}
-    />
+    /> */
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div /* className="min-h-screen" */>
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -273,7 +284,7 @@ export default function TrainingSetup() {
             </button>
           ) : (
             <button
-              onClick={() => { setCurrentStep(3) }}
+              onClick={play}
               disabled={!isGameReady}
               className="ml-auto px-6 py-2 bg-green-500 text-white rounded-lg 
               flex items-center space-x-2

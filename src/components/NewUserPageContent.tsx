@@ -9,7 +9,7 @@ const NewUserPageContent = () => {
   const { data: session } = useSession()
 
   return (
-    <div className='dark:bg-gray-800 dark:text-white w-full min-h-[calc(100vh-74px)] flex flex-col justify-center items-center p-6 space-y-8'>
+    <div className='dark:bg-gray-800 dark:text-white w-full flex flex-col justify-center items-center p-6 space-y-8'>
       <h2 className='text-3xl font-bold'>Welkom, <b>{session?.user.name}</b>!</h2>
 
       <div className='space-y-4 w-full max-w-2xl'>

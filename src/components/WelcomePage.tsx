@@ -302,16 +302,13 @@ const WelcomePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen min-w-full flex items-center justify-center">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-      // className="bg-white dark:bg-gray-800 rounded-2xl p-8 w-full max-w-4xl shadow-2xl border border-transparent dark:border-gray-700"
-      >
-        {renderContent()}
-      </motion.div>
-    </div>
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      {renderContent()}
+    </motion.div>
   );
 };
 

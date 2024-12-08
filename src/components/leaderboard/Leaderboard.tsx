@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import LeaderboardTable from './LeaderboardTable';
 import { useLeaderboard } from '@/hooks/useLeaderboard';
 import { leaderboardSections } from './leaderboardSections';
@@ -12,6 +12,19 @@ export const Leaderboard: React.FC = () => {
 
   const { leaderboard, isLoading, error } = useLeaderboard();
   const { player, isLoading: isPlayerLoading, error: playerError, } = usePlayer()
+  const targetRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (targetRef.current) {
+      const elementTop = targetRef.current.getBoundingClientRect().top
+      const scrollPosition = window.scrollY + elementTop - 74
+
+      window.scrollTo({
+        top: scrollPosition,
+        behavior: 'smooth'
+      })
+    }
+  }, [targetRef.current])
 
   if (isLoading || isPlayerLoading) {
     return (
@@ -47,6 +60,7 @@ export const Leaderboard: React.FC = () => {
     <div className="space-y-6">
       <div className="text-center dark:text-white text-gray-900 mb-4">
         <div className="relative flex flex-col-reverse justify-center items-center text-center">
+          <div className='h-52'></div>
           {
             nextSections
               .sort((a, b) => a.maxLevel - b.maxLevel)
@@ -81,7 +95,7 @@ export const Leaderboard: React.FC = () => {
           }
         </div>
 
-        <div className='z-[3]'>
+        <div className='z-[3]' ref={targetRef}>
           {relevantSection && leaderboard && (
             <LeaderboardTable
               leaderboard={leaderboard}
@@ -124,6 +138,7 @@ export const Leaderboard: React.FC = () => {
                 )
               })
           }
+          <div className='h-52'></div>
         </div>
       </div>
     </div >
