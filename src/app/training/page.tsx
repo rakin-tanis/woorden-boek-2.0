@@ -6,12 +6,10 @@ import React from 'react'
 
 
 type PageProps = {
-  searchParams: {
-    [key: string]: string | string[] | undefined
-  }
+  [key: string]: string | string[] | undefined
 }
 
-const page = async ({ searchParams }: PageProps) => {
+const page = async ({ searchParams }: { searchParams: Promise<PageProps> }) => {
   const params = await searchParams;
   const source = (params['source'] as string) || "green"
   const level = (params['level'] as string) || '1'
